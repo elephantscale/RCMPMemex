@@ -1,0 +1,12 @@
+output/
+.idea/
+*.iml
+target/
+output/
+*~
+test-output/
+logs/
+.classpath
+.settings
+.project
+nbactions.xml
