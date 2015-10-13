@@ -34,7 +34,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
      */
     public static final int RET_OK = 1;
 
-    private Tika tika = new Tika();
+    private final Tika tika = new Tika();
 
     /**
      * Creates new form ConvertPdfDialog
@@ -43,6 +43,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         setLocationRelativeTo(null);
+        initAsposeLicense();
         // Close the dialog when Esc is pressed
         String cancelName = "cancel";
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -400,7 +401,16 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
         // Get the extracted text
         String extractedText = textAbsorber.getText();
-
+        System.out.println("extractedText=\n" + extractedText);
         return extractedText;
+    }
+
+    private void initAsposeLicense() {
+        com.aspose.pdf.License license = new com.aspose.pdf.License();
+        try {            
+            license.setLicense("lic/Aspose.Pdf.lic");
+        } catch (Exception e) {
+            logger.error("Aspose license problem", e);
+        }
     }
 }
