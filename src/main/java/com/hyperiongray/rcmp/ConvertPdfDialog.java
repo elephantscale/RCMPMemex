@@ -11,18 +11,20 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  *
  * @author mark
  */
 public class ConvertPdfDialog extends javax.swing.JDialog {
-private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.class);
+
+    private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.class);
     /**
      * A return status code - returned if Cancel button has been pressed
      */
@@ -31,6 +33,8 @@ private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.cl
      * A return status code - returned if OK button has been pressed
      */
     public static final int RET_OK = 1;
+
+    private Tika tika = new Tika();
 
     /**
      * Creates new form ConvertPdfDialog
@@ -315,7 +319,8 @@ private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.cl
         }
         inputDirText.setText(file.getPath());
     }
-     private void setupOutputFile() {
+
+    private void setupOutputFile() {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         File f;
@@ -334,23 +339,68 @@ private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.cl
         }
         outputFileText.setText(file.getPath());
     }
-     private void doConvert() {
-         statusArea.setText("Working on conversion...\n");
-         Tika tika = new Tika();
-         String inputDir = inputDirText.getText();
-         File [] files = new File(inputDir).listFiles();
-         for (File file: files) {
-             try {
-             extractInfo(tika, file);
-             } catch(IOException | TikaException e) {
-                 logger.error("Problem convering file {}", file.getName(), e);
-             }
-         }
-         statusArea.append("Done");
-     }
-     private void extractInfo(Tika tika, File file) throws IOException, TikaException {
-         String pdfText = tika.parseToString(file);
-         System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
-         System.out.println(pdfText);
-     }
+
+    private void doConvert() {
+        statusArea.setText("Working on conversion...\n");
+        String inputDir = inputDirText.getText();
+        File[] files = new File(inputDir).listFiles();
+        for (File file : files) {
+            try {
+                extractInfo(file);
+            } catch (IOException | TikaException e) {
+                logger.error("Problem converting file {}", file.getName(), e);
+            }
+        }
+        statusArea.append("Done");
+    }
+
+    private void extractInfo(File file) throws IOException, TikaException {
+        //String pdfText = extractWithTika(file);
+        //String pdfText = extractWithPdfBox(file);
+        String pdfText = extractWithAspose(file);
+        extractData(pdfText);
+        System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
+        System.out.println(pdfText);
+    }
+
+    private void extractData(String pdfText) {
+        String marker = "Report no.:";
+        int markerStart = pdfText.indexOf(marker);
+        if (markerStart >= 0) {
+            int infoEnd = pdfText.indexOf("\n", markerStart);
+            if (infoEnd >= 0) {
+                String info = pdfText.substring(markerStart + marker.length(), infoEnd);
+                System.out.println(marker + " --- " + info);
+            }
+        }
+    }
+
+    private String extractWithTika(File file) throws IOException, TikaException {
+        return tika.parseToString(file);
+    }
+
+    private String extractWithPdfBox(File file) throws IOException {
+        String pdfText;
+        try (PDDocument doc = PDDocument.load(file)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            pdfText = stripper.getText(doc);
+        }
+        return pdfText;
+    }
+
+    private String extractWithAspose(File file) throws IOException {
+        // Open document
+        com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
+
+        // Create TextAbsorber object to extract text
+        com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
+
+        // Accept the absorber for all the pages
+        pdfDocument.getPages().accept(textAbsorber);
+
+        // Get the extracted text
+        String extractedText = textAbsorber.getText();
+
+        return extractedText;
+    }
 }

@@ -10,3 +10,4 @@ logs/
 .settings
 .project
 nbactions.xml
+nb-configuration.xml
