@@ -441,17 +441,18 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
         // Get the extracted text
         String extractedText = textAbsorber.getText();
-        System.out.println("extractedText=\n" + extractedText);
+//        System.out.println("extractedText=\n" + extractedText);
         return extractedText;
     }
 
     private void initAsposeLicense() {
         com.aspose.pdf.License license = new com.aspose.pdf.License();
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("Aspose.Pdf.lic").getFile());
-            InputStream licenseStream = new FileInputStream(file);
-            license.setLicense(licenseStream);
+//            ClassLoader classLoader = getClass().getClassLoader();
+//            File file = new File(classLoader.getResource("Aspose.Pdf.lic").getFile());
+//            InputStream licenseStream = new FileInputStream(file);
+//            license.setLicense(licenseStream);
+            license.setLicense("Aspose.Pdf.lic");
         } catch (Exception e) {
             logger.error("Aspose license problem", e);
         }

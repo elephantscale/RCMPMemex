@@ -67,6 +67,12 @@
                             <mainClass>com.hyperiongray.rcmp.RCMPMain</mainClass>
                         </manifest>
                     </archive>
+                    <resources>
+                        <resource>
+                            <directory>src/main/resources</directory>
+                            <filtering>true</filtering>
+                        </resource>
+                    </resources>
                 </configuration>
             </plugin>
         </plugins>
