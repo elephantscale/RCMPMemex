@@ -1,9 +1,14 @@
 package com.hyperiongray.rcmp;
 
+import com.google.common.io.Files;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -35,6 +40,31 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
     public static final int RET_OK = 1;
 
     private final Tika tika = new Tika();
+
+    private final String[] markers = {
+        "Report no.:",
+        "Occurrence Type:",
+        "Occurrence time:",
+        "Reported time:",
+        "Place of offence:",
+        "Clearance status:",
+        "Concluded:",
+        "Concluded date:",
+        "Summary:",
+        "Remarks:",
+        "Associated occurrences:",
+        "Involved persons:",
+        "Involved addresses:",
+        "Involved comm addresses:",
+        "Involved vehicles:",
+        "Involved officers:",
+        "Involved property:",
+        "Modus operandi:",
+        "Reports:",
+        "Supplementary report:"                
+    };
+    
+    private String outputFile;
 
     /**
      * Creates new form ConvertPdfDialog
@@ -342,6 +372,8 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
     }
 
     private void doConvert() {
+        outputFile = outputFileText.getText();
+        new File(outputFile).delete();
         statusArea.setText("Working on conversion...\n");
         String inputDir = inputDirText.getText();
         File[] files = new File(inputDir).listFiles();
@@ -360,20 +392,28 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         //String pdfText = extractWithPdfBox(file);
         String pdfText = extractWithAspose(file);
         extractData(pdfText);
-        System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
-        System.out.println(pdfText);
+//        System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
+//        System.out.println(pdfText);
     }
 
-    private void extractData(String pdfText) {
-        String marker = "Report no.:";
-        int markerStart = pdfText.indexOf(marker);
-        if (markerStart >= 0) {
-            int infoEnd = pdfText.indexOf("\n", markerStart);
-            if (infoEnd >= 0) {
-                String info = pdfText.substring(markerStart + marker.length(), infoEnd);
-                System.out.println(marker + " --- " + info);
+    private void extractData(String pdfText) throws IOException {
+        String separator = "|";
+        Files.append(flatten(markers, separator), new File(outputFile), Charset.defaultCharset());  
+        ArrayList <String> values = new ArrayList<>();
+        for (String marker : markers) {
+            String value = "";
+            int markerStart = pdfText.indexOf(marker);
+            if (markerStart >= 0) {
+                int infoEnd = pdfText.indexOf("\n", markerStart);
+                if (infoEnd >= 0) {
+                    String info = pdfText.substring(markerStart + marker.length(), infoEnd);                    
+                    value = info;
+                }
             }
-        }
+            values.add(value);
+        }        
+        Files.append(flatten((String[]) values.toArray(new String[0]), separator), 
+                new File(outputFile), Charset.defaultCharset());  
     }
 
     private String extractWithTika(File file) throws IOException, TikaException {
@@ -407,10 +447,23 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
     private void initAsposeLicense() {
         com.aspose.pdf.License license = new com.aspose.pdf.License();
-        try {            
-            license.setLicense("lic/Aspose.Pdf.lic");
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("Aspose.Pdf.lic").getFile());
+            InputStream licenseStream = new FileInputStream(file);
+            license.setLicense(licenseStream);
         } catch (Exception e) {
             logger.error("Aspose license problem", e);
         }
+    }
+    private String flatten(String [] values, String separator) {
+        StringBuilder builder = new StringBuilder();
+        for (String value: values) {
+            builder.append(value.trim()).append(separator);
+        }
+        if (values.length > 0) {
+            builder.delete(builder.length() - 1, builder.length());
+        }
+        return builder.toString() + "\n";
     }
 }
