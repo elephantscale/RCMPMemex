@@ -105,21 +105,21 @@ public class AboutDialog extends javax.swing.JDialog {
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(4);
-        jTextArea1.setText("RCMP application is...");
+        jTextArea1.setText("Greg Deangelo\nMark Kerzner");
         jScrollPane1.setViewportView(jTextArea1);
 
         jTextArea2.setEditable(false);
         jTextArea2.setColumns(20);
         jTextArea2.setLineWrap(true);
         jTextArea2.setRows(4);
-        jTextArea2.setText("RCMP application is...");
+        jTextArea2.setText("RCMP application is for Royal Canadian Mounted Police. It extract reports and puts the information into a CSV file");
         jScrollPane2.setViewportView(jTextArea2);
 
         jTextArea3.setEditable(false);
         jTextArea3.setColumns(20);
         jTextArea3.setLineWrap(true);
         jTextArea3.setRows(4);
-        jTextArea3.setText("RCMP application is...");
+        jTextArea3.setText("Greg Deangelo <gregory.deangelo@gmail.com>");
         jScrollPane3.setViewportView(jTextArea3);
 
         jLabel4.setText("Version");

@@ -1,14 +1,9 @@
 package com.hyperiongray.rcmp;
 
-import com.google.common.io.Files;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -16,10 +11,6 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;
-import org.apache.tika.Tika;
-import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,41 +30,13 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
      */
     public static final int RET_OK = 1;
 
-    private final Tika tika = new Tika();
-
-    private final String[] markers = {
-        "Report no.:",
-        "Occurrence Type:",
-        "Occurrence time:",
-        "Reported time:",
-        "Place of offence:",
-        "Clearance status:",
-        "Concluded:",
-        "Concluded date:",
-        "Summary:",
-        "Remarks:",
-        "Associated occurrences:",
-        "Involved persons:",
-        "Involved addresses:",
-        "Involved comm addresses:",
-        "Involved vehicles:",
-        "Involved officers:",
-        "Involved property:",
-        "Modus operandi:",
-        "Reports:",
-        "Supplementary report:"                
-    };
-    
-    private String outputFile;
-
     /**
      * Creates new form ConvertPdfDialog
      */
     public ConvertPdfDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        setLocationRelativeTo(null);
-        initAsposeLicense();
+        setLocationRelativeTo(null);        
         // Close the dialog when Esc is pressed
         String cancelName = "cancel";
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -349,6 +312,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
             return;
         }
         inputDirText.setText(file.getPath());
+        ReportExtractor.getInstance().setInputDir(inputDirText.getText());
     }
 
     private void setupOutputFile() {
@@ -369,102 +333,18 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
             return;
         }
         outputFileText.setText(file.getPath());
+        ReportExtractor.getInstance().setOutputFile(outputFileText.getText());
     }
-
     private void doConvert() {
-        outputFile = outputFileText.getText();
-        new File(outputFile).delete();
-        statusArea.setText("Working on conversion...\n");
-        String inputDir = inputDirText.getText();
-        File[] files = new File(inputDir).listFiles();
-        for (File file : files) {
-            try {
-                extractInfo(file);
-            } catch (IOException | TikaException e) {
-                logger.error("Problem converting file {}", file.getName(), e);
-            }
-        }
-        statusArea.append("Done");
+        statusArea.setText("Working on conversion...");
+        ReportExtractor.getInstance().doConvert();
+        statusArea.append("\nDone extracting information from " + ReportExtractor.getInstance().getDocCount() + " documents");
+        statusArea.append("\nFor the results, look in " + ReportExtractor.getInstance().getOutputFile());
     }
-
-    private void extractInfo(File file) throws IOException, TikaException {
-        //String pdfText = extractWithTika(file);
-        //String pdfText = extractWithPdfBox(file);
-        String pdfText = extractWithAspose(file);
-        extractData(pdfText);
-//        System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
-//        System.out.println(pdfText);
-    }
-
-    private void extractData(String pdfText) throws IOException {
-        String separator = "|";
-        Files.append(flatten(markers, separator), new File(outputFile), Charset.defaultCharset());  
-        ArrayList <String> values = new ArrayList<>();
-        for (String marker : markers) {
-            String value = "";
-            int markerStart = pdfText.indexOf(marker);
-            if (markerStart >= 0) {
-                int infoEnd = pdfText.indexOf("\n", markerStart);
-                if (infoEnd >= 0) {
-                    String info = pdfText.substring(markerStart + marker.length(), infoEnd);                    
-                    value = info;
-                }
-            }
-            values.add(value);
-        }        
-        Files.append(flatten((String[]) values.toArray(new String[0]), separator), 
-                new File(outputFile), Charset.defaultCharset());  
-    }
-
-    private String extractWithTika(File file) throws IOException, TikaException {
-        return tika.parseToString(file);
-    }
-
-    private String extractWithPdfBox(File file) throws IOException {
-        String pdfText;
-        try (PDDocument doc = PDDocument.load(file)) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            pdfText = stripper.getText(doc);
-        }
-        return pdfText;
-    }
-
-    private String extractWithAspose(File file) throws IOException {
-        // Open document
-        com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
-
-        // Create TextAbsorber object to extract text
-        com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
-
-        // Accept the absorber for all the pages
-        pdfDocument.getPages().accept(textAbsorber);
-
-        // Get the extracted text
-        String extractedText = textAbsorber.getText();
-//        System.out.println("extractedText=\n" + extractedText);
-        return extractedText;
-    }
-
-    private void initAsposeLicense() {
-        com.aspose.pdf.License license = new com.aspose.pdf.License();
-        try {
-//            ClassLoader classLoader = getClass().getClassLoader();
-//            File file = new File(classLoader.getResource("Aspose.Pdf.lic").getFile());
-//            InputStream licenseStream = new FileInputStream(file);
-//            license.setLicense(licenseStream);
-            license.setLicense("Aspose.Pdf.lic");
-        } catch (Exception e) {
-            logger.error("Aspose license problem", e);
-        }
-    }
-    private String flatten(String [] values, String separator) {
-        StringBuilder builder = new StringBuilder();
-        for (String value: values) {
-            builder.append(value.trim()).append(separator);
-        }
-        if (values.length > 0) {
-            builder.delete(builder.length() - 1, builder.length());
-        }
-        return builder.toString() + "\n";
+    @Override
+    public void setVisible(boolean b) {
+        inputDirText.setText(ReportExtractor.getInstance().getInputDir());
+        outputFileText.setText(ReportExtractor.getInstance().getOutputFile());
+        super.setVisible(b);
     }
 }
