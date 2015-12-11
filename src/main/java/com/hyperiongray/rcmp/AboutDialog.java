@@ -31,6 +31,7 @@ public class AboutDialog extends javax.swing.JDialog {
         initComponents();
         // centralize
         setLocationRelativeTo(null);
+        jTextField1.setText(RCMPMain.VERSION);
         // Close the dialog when Esc is pressed
         String cancelName = "cancel";
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);

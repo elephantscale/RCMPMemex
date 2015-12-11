@@ -68,8 +68,10 @@ public class ReportExtractor {
         File[] files = new File(getInputDir()).listFiles();
         for (File file : files) {
             try {
-                extractInfo(file);
-                ++docCount;
+                if (file.isFile() && file.exists()) {
+                    extractInfo(file);
+                    ++docCount;
+                }
             } catch (IOException | TikaException e) {
                 logger.error("Problem converting file {}", file.getName(), e);
             }
