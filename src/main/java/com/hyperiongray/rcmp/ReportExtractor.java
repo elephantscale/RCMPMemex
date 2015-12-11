@@ -2,7 +2,9 @@ package com.hyperiongray.rcmp;
 
 import com.google.common.io.Files;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -149,11 +151,7 @@ public class ReportExtractor {
     private void initAsposeLicense() {
         com.aspose.pdf.License license = new com.aspose.pdf.License();
         try {
-//            ClassLoader classLoader = getClass().getClassLoader();
-//            File file = new File(classLoader.getResource("Aspose.Pdf.lic").getFile());
-//            InputStream licenseStream = new FileInputStream(file);
-//            license.setLicense(licenseStream);
-            license.setLicense("Aspose.Pdf.lic");
+            license.setLicense(ReportExtractor.class.getResourceAsStream("/Aspose.Pdf.lic"));
         } catch (Exception e) {
             logger.error("Aspose license problem", e);
         }

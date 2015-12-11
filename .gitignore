@@ -11,3 +11,5 @@ logs/
 .project
 nbactions.xml
 nb-configuration.xml
+# license files :) - Aspose
+*.lic
