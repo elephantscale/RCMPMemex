@@ -46,18 +46,19 @@ public class ReportExtractor {
     };
 
     private final String[] markers2 = {
-        "TICKET NO:",
-    };
-    
+        "TICKET NO:",};
+
     private String outputFile;
     private String inputDir;
     // not lazy initialization, to avoid threading problems
     private static final ReportExtractor instance = new ReportExtractor();
     private int docCount;
     private final static String separator = "|";
-    
+
     private boolean debug = false;
-    
+
+    private int fileType = 0;
+
     public static ReportExtractor getInstance() {
         return instance;
     }
@@ -68,8 +69,10 @@ public class ReportExtractor {
     }
 
     public void doConvert() throws IOException {
-        new File(getOutputFile()).delete();
-        Files.append(flatten(markers1, separator), new File(getOutputFile()), Charset.defaultCharset());     
+        new File(getOutputFile1()).delete();
+        Files.append(flatten(markers1, separator), new File(getOutputFile1()), Charset.defaultCharset());
+        new File(getOutputFile2()).delete();
+        Files.append(flatten(markers2, separator), new File(getOutputFile2()), Charset.defaultCharset());
         File[] files = new File(getInputDir()).listFiles();
         for (File file : files) {
             try {
@@ -94,7 +97,7 @@ public class ReportExtractor {
         }
     }
 
-    private void extractData(String pdfText) throws IOException {                
+    private void extractData(String pdfText) throws IOException {
         ArrayList<String> values = new ArrayList<>();
         for (int m = 0; m < markers1.length; ++m) {
             String marker = markers1[m];
@@ -171,10 +174,26 @@ public class ReportExtractor {
     }
 
     /**
-     * @return the outputFile
+     * @return the outputFile 
      */
     public String getOutputFile() {
         return outputFile;
+    }
+
+    /**
+     * @return the outputFile of type 1
+     */
+    public String getOutputFile1() {
+        int dot = outputFile.lastIndexOf(".");
+        return new StringBuffer(outputFile).insert(dot, 1).toString();
+    }
+
+    /**
+     * @return the outputFile of type 2
+     */
+    public String getOutputFile2() {
+        int dot = outputFile.lastIndexOf(".");
+        return new StringBuffer(outputFile).insert(dot, 2).toString();
     }
 
     /**
@@ -213,10 +232,9 @@ public class ReportExtractor {
     }
 
     private String sanitize(String str) {
-        return "\"" 
+        return "\""
                 + str.trim()
-                + "\""                 
-                ;
+                + "\"";
     }
 
     /**
