@@ -126,7 +126,6 @@ public class AboutDialog extends javax.swing.JDialog {
         jLabel4.setText("Version");
 
         jTextField1.setEditable(false);
-        jTextField1.setText("0.2");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

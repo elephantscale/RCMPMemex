@@ -2,9 +2,7 @@ package com.hyperiongray.rcmp;
 
 import com.google.common.io.Files;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -24,7 +22,7 @@ public class ReportExtractor {
 
     private final Tika tika = new Tika();
 
-    private final String[] markers = {
+    private final String[] markers1 = {
         "Report no.:",
         "Occurrence Type:",
         "Occurrence time:",
@@ -47,12 +45,19 @@ public class ReportExtractor {
         "Supplementary report:"
     };
 
+    private final String[] markers2 = {
+        "TICKET NO:",
+    };
+    
     private String outputFile;
     private String inputDir;
     // not lazy initialization, to avoid threading problems
     private static final ReportExtractor instance = new ReportExtractor();
     private int docCount;
-
+    private final static String separator = "|";
+    
+    private boolean debug = false;
+    
     public static ReportExtractor getInstance() {
         return instance;
     }
@@ -62,9 +67,9 @@ public class ReportExtractor {
         initAsposeLicense();
     }
 
-    public void doConvert() {
+    public void doConvert() throws IOException {
         new File(getOutputFile()).delete();
-
+        Files.append(flatten(markers1, separator), new File(getOutputFile()), Charset.defaultCharset());     
         File[] files = new File(getInputDir()).listFiles();
         for (File file : files) {
             try {
@@ -83,37 +88,32 @@ public class ReportExtractor {
         //String pdfText = extractWithPdfBox(file);
         String pdfText = extractWithAspose(file);
         extractData(pdfText);
-//        System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
-//        System.out.println(pdfText);
+        if (isDebug()) {
+            System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
+            System.out.println(pdfText);
+        }
     }
 
-    private void extractData(String pdfText) throws IOException {
-        String separator = "|";
-        Files.append(flatten(markers, separator), new File(getOutputFile()), Charset.defaultCharset());
+    private void extractData(String pdfText) throws IOException {                
         ArrayList<String> values = new ArrayList<>();
-        for (int m = 0; m < markers.length; ++m) {
-            String marker = markers[m];
+        for (int m = 0; m < markers1.length; ++m) {
+            String marker = markers1[m];
             String value = "";
             int markerStart = pdfText.indexOf(marker);
             if (markerStart >= 0) {
-                if (m < markers.length - 1) {
-                    String nextMarker = markers[m + 1];
+                if (m < markers1.length - 1) {
+                    String nextMarker = markers1[m + 1];
                     int markerStartNext = pdfText.indexOf(nextMarker);
                     if (markerStartNext > 0) {
                         String betweenTheMarkers = pdfText.substring(markerStart + marker.length(), markerStartNext).trim();
-//                        System.out.println("Marker: \n" + marker);
-//                        System.out.println("Following text: \n" + betweenTheMarkers);
+                        if (isDebug()) {
+                            System.out.println("Marker: \n" + marker);
+                            System.out.println("Following text: \n" + betweenTheMarkers);
+                        }
                         value = sanitize(betweenTheMarkers);
                     }
 
                 }
-//                int infoEnd = pdfText.indexOf("\n", markerStart);                
-//                if (infoEnd >= 0) {
-//                    String info = pdfText.substring(markerStart + marker.length(), infoEnd);
-//                    value = info;
-//                    System.out.println("Info:");
-//                    System.out.println(info);
-//                }
             }
             values.add(value);
         }
@@ -216,8 +216,20 @@ public class ReportExtractor {
         return "\"" 
                 + str.trim()
                 + "\""                 
-                //.replaceAll(" +", " ")
-                // + .replaceAll("|", " ")
                 ;
+    }
+
+    /**
+     * @return the debug
+     */
+    public boolean isDebug() {
+        return debug;
+    }
+
+    /**
+     * @param debug the debug to set
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

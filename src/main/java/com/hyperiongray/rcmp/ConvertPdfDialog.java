@@ -36,7 +36,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
     public ConvertPdfDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        setLocationRelativeTo(null);        
+        setLocationRelativeTo(null);
         // Close the dialog when Esc is pressed
         String cancelName = "cancel";
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -77,6 +77,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         jLabel3 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         statusArea = new javax.swing.JTextArea();
+        debugCheck = new javax.swing.JCheckBox();
 
         setTitle("Convert PDF reports to CSV");
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -130,6 +131,10 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         statusArea.setRows(5);
         jScrollPane1.setViewportView(statusArea);
 
+        debugCheck.setText("debug");
+        debugCheck.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        debugCheck.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -144,21 +149,22 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(inputDirText, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel1))
-                                .addGap(0, 197, Short.MAX_VALUE))
                             .addComponent(outputFileText, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cancelButton)
                             .addComponent(jButton1)
                             .addComponent(jButton2)))
+                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1))
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 199, Short.MAX_VALUE)
+                        .addComponent(debugCheck))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -167,8 +173,10 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(jLabel1)
+                .addGap(16, 16, 16)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(debugCheck))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(inputDirText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -183,7 +191,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cancelButton)
                     .addComponent(okButton)
@@ -276,6 +284,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
+    private javax.swing.JCheckBox debugCheck;
     private javax.swing.JTextField inputDirText;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -335,12 +344,22 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         outputFileText.setText(file.getPath());
         ReportExtractor.getInstance().setOutputFile(outputFileText.getText());
     }
+
     private void doConvert() {
         statusArea.setText("Working on conversion...");
-        ReportExtractor.getInstance().doConvert();
-        statusArea.append("\nDone extracting information from " + ReportExtractor.getInstance().getDocCount() + " documents");
-        statusArea.append("\nFor the results, look in " + ReportExtractor.getInstance().getOutputFile());
+        try {
+            ReportExtractor instance = ReportExtractor.getInstance();
+            instance.setDocCount(0);
+            instance.setDebug(debugCheck.isSelected());
+            instance.doConvert();
+            statusArea.append("\nDone extracting information from " + ReportExtractor.getInstance().getDocCount() + " documents");
+            statusArea.append("\nFor the results, look in " + ReportExtractor.getInstance().getOutputFile());
+        } catch (IOException e) {
+            e.printStackTrace(System.out);
+            statusArea.append("\nInternal problem with document extraction: " + e.getMessage());
+        }
     }
+
     @Override
     public void setVisible(boolean b) {
         inputDirText.setText(ReportExtractor.getInstance().getInputDir());
