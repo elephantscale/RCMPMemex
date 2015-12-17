@@ -46,7 +46,9 @@ public class ReportExtractor {
     };
 
     private final String[] markers2 = {
-        "TICKET NO:",};
+        "TICKET   NO:",
+        "LAST NAME:",
+        "FIRST NAME:",};
 
     private String outputFile;
     private String inputDir;
@@ -56,8 +58,6 @@ public class ReportExtractor {
     private final static String separator = "|";
 
     private boolean debug = false;
-
-    private int fileType = 0;
 
     public static ReportExtractor getInstance() {
         return instance;
@@ -99,13 +99,15 @@ public class ReportExtractor {
 
     private void extractData(String pdfText) throws IOException {
         ArrayList<String> values = new ArrayList<>();
-        for (int m = 0; m < markers1.length; ++m) {
-            String marker = markers1[m];
+        int fileType = determineFileType(pdfText);
+        String[] markers = fileType == 1 ? markers1 : markers2;
+        for (int m = 0; m < markers.length; ++m) {
+            String marker = markers[m];
             String value = "";
             int markerStart = pdfText.indexOf(marker);
             if (markerStart >= 0) {
-                if (m < markers1.length - 1) {
-                    String nextMarker = markers1[m + 1];
+                if (m < markers.length - 1) {
+                    String nextMarker = markers[m + 1];
                     int markerStartNext = pdfText.indexOf(nextMarker);
                     if (markerStartNext > 0) {
                         String betweenTheMarkers = pdfText.substring(markerStart + marker.length(), markerStartNext).trim();
@@ -115,13 +117,13 @@ public class ReportExtractor {
                         }
                         value = sanitize(betweenTheMarkers);
                     }
-
                 }
             }
             values.add(value);
         }
+        String typedOutputFile = fileType == 1 ? getOutputFile1() : getOutputFile2();
         Files.append(flatten((String[]) values.toArray(new String[0]), separator),
-                new File(getOutputFile()), Charset.defaultCharset());
+                new File(typedOutputFile), Charset.defaultCharset());
     }
 
     private String extractWithTika(File file) throws IOException, TikaException {
@@ -174,7 +176,7 @@ public class ReportExtractor {
     }
 
     /**
-     * @return the outputFile 
+     * @return the outputFile
      */
     public String getOutputFile() {
         return outputFile;
@@ -249,5 +251,9 @@ public class ReportExtractor {
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    private int determineFileType(String pdfText) {
+        return !pdfText.contains(markers2[0]) ? 1 : 2;
     }
 }
