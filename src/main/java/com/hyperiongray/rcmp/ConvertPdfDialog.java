@@ -356,6 +356,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
             statusArea.append("\nFor the results, look in ");
             statusArea.append("\n" + ReportExtractor.getInstance().getOutputFile1());
             statusArea.append("\n" + ReportExtractor.getInstance().getOutputFile2());
+            statusArea.append("\n" + ReportExtractor.getInstance().getOutputKeyFile());
         } catch (IOException e) {
             e.printStackTrace(System.out);
             statusArea.append("\nInternal problem with document extraction: " + e.getMessage());

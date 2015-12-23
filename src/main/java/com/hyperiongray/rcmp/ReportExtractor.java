@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.Tika;
@@ -50,6 +52,11 @@ public class ReportExtractor {
         "LAST NAME:",
         "FIRST NAME:",};
 
+    private final String[] markers3 = {
+        "Person name:",
+        "Ticket number:",
+        "Unique key                        "}; // spaces for Excel cell formatting
+
     private String outputFile;
     private String inputDir;
     // not lazy initialization, to avoid threading problems
@@ -59,6 +66,8 @@ public class ReportExtractor {
 
     private boolean debug = false;
 
+    private int ticketNumber = 0;
+    
     public static ReportExtractor getInstance() {
         return instance;
     }
@@ -69,10 +78,8 @@ public class ReportExtractor {
     }
 
     public void doConvert() throws IOException {
-        new File(getOutputFile1()).delete();
-        Files.append(flatten(markers1, separator), new File(getOutputFile1()), Charset.defaultCharset());
-        new File(getOutputFile2()).delete();
-        Files.append(flatten(markers2, separator), new File(getOutputFile2()), Charset.defaultCharset());
+        initializeOutputFiles();
+        // for each report, add extracted information to the appropriate target files
         File[] files = new File(getInputDir()).listFiles();
         for (File file : files) {
             try {
@@ -83,6 +90,30 @@ public class ReportExtractor {
             } catch (IOException | TikaException e) {
                 logger.error("Problem converting file {}", file.getName(), e);
             }
+        }
+        writeKeyFile();
+    }
+
+    private void initializeOutputFiles() throws IOException {
+        new File(getOutputFile1()).delete();
+        Files.append(flatten(markers1, separator), new File(getOutputFile1()), Charset.defaultCharset());
+        new File(getOutputFile2()).delete();
+        Files.append(flatten(markers2, separator), new File(getOutputFile2()), Charset.defaultCharset());
+    }
+
+    private void writeKeyFile() throws IOException {
+        new File(getOutputKeyFile()).delete();
+        Files.append(flatten(markers3, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
+        Map<String, KeyEntry> keyTable = KeyTable.getInstance().getKeyTable();
+        Iterator<String> iter = keyTable.keySet().iterator();
+        String[] values = new String[3];
+        while (iter.hasNext()) {
+            KeyEntry entry = keyTable.get(iter.next());
+            values[0] = entry.getPersonName();
+            values[1] = entry.getTicketNumber();
+            values[2] = entry.getHashKey();
+            Files.append(flatten((String[]) values, separator),
+                    new File(getOutputKeyFile()), Charset.defaultCharset());
         }
     }
 
@@ -101,6 +132,8 @@ public class ReportExtractor {
         ArrayList<String> values = new ArrayList<>();
         int fileType = determineFileType(pdfText);
         String[] markers = fileType == 1 ? markers1 : markers2;
+        // prepare personal information holders
+        String personName = "Mark Kerzner";        
         for (int m = 0; m < markers.length; ++m) {
             String marker = markers[m];
             String value = "";
@@ -124,6 +157,9 @@ public class ReportExtractor {
         String typedOutputFile = fileType == 1 ? getOutputFile1() : getOutputFile2();
         Files.append(flatten((String[]) values.toArray(new String[0]), separator),
                 new File(typedOutputFile), Charset.defaultCharset());
+        // form privacy entry
+        KeyEntry keyEntry = new KeyEntry(personName, "" + ++ticketNumber);
+        KeyTable.getInstance().put(keyEntry);
     }
 
     private String extractWithTika(File file) throws IOException, TikaException {
@@ -196,6 +232,14 @@ public class ReportExtractor {
     public String getOutputFile2() {
         int dot = outputFile.lastIndexOf(".");
         return new StringBuffer(outputFile).insert(dot, 2).toString();
+    }
+
+    /**
+     * @return the outputKeyFile
+     */
+    public String getOutputKeyFile() {
+        int dot = outputFile.lastIndexOf(".");
+        return new StringBuffer(outputFile).insert(dot, "key").toString();
     }
 
     /**
