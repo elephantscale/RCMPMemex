@@ -46,6 +46,12 @@ public class ReportExtractor {
         "Reports:",
         "Supplementary report:"
     };
+    private static final String SUMMARY = "Summary:";
+    private static final String INVOLVED_PERSONS = "Involved persons:";
+    private static final String INVOLVED_ADDRESSES = "Involved addresses:";
+    private static final String CASE_NUMBER = "Report no.:";
+    private KeyEntry currentKeyEntry;
+    private String currentCaseNumber;
 
     private final String[] markers2 = {
         "TICKET   NO:",
@@ -53,8 +59,8 @@ public class ReportExtractor {
         "FIRST NAME:",};
 
     private final String[] markers3 = {
-        "Person name:",
-        "Ticket number:",
+        "Person name",
+        "Ticket number",
         "Unique key                        "}; // spaces for Excel cell formatting
 
     private String outputFile;
@@ -66,8 +72,6 @@ public class ReportExtractor {
 
     private boolean debug = false;
 
-    private int ticketNumber = 0;
-    
     public static ReportExtractor getInstance() {
         return instance;
     }
@@ -120,6 +124,8 @@ public class ReportExtractor {
     private void extractInfo(File file) throws IOException, TikaException {
         //String pdfText = extractWithTika(file);
         //String pdfText = extractWithPdfBox(file);
+        currentCaseNumber = "";
+        currentKeyEntry = null;
         String pdfText = extractWithAspose(file);
         extractData(pdfText);
         if (isDebug()) {
@@ -132,8 +138,6 @@ public class ReportExtractor {
         ArrayList<String> values = new ArrayList<>();
         int fileType = determineFileType(pdfText);
         String[] markers = fileType == 1 ? markers1 : markers2;
-        // prepare personal information holders
-        String personName = "Mark Kerzner";        
         for (int m = 0; m < markers.length; ++m) {
             String marker = markers[m];
             String value = "";
@@ -148,7 +152,7 @@ public class ReportExtractor {
                             System.out.println("Marker: \n" + marker);
                             System.out.println("Following text: \n" + betweenTheMarkers);
                         }
-                        value = sanitize(betweenTheMarkers);
+                        value = sanitize(marker, betweenTheMarkers);
                     }
                 }
             }
@@ -158,8 +162,9 @@ public class ReportExtractor {
         Files.append(flatten((String[]) values.toArray(new String[0]), separator),
                 new File(typedOutputFile), Charset.defaultCharset());
         // form privacy entry
-        KeyEntry keyEntry = new KeyEntry(personName, "" + ++ticketNumber);
-        KeyTable.getInstance().put(keyEntry);
+        if (currentKeyEntry != null) {
+            KeyTable.getInstance().put(currentKeyEntry);
+        }
     }
 
     private String extractWithTika(File file) throws IOException, TikaException {
@@ -277,10 +282,35 @@ public class ReportExtractor {
         this.docCount = docCount;
     }
 
-    private String sanitize(String str) {
-        return "\""
-                + str.trim()
+    private String sanitize(String marker, String str) {
+        String value = str.replaceAll("\\s+", " ");
+        if (CASE_NUMBER.equalsIgnoreCase(marker)) {
+            currentCaseNumber = value;
+        }
+        if (SUMMARY.equalsIgnoreCase(marker)) {
+            int nameStart = value.indexOf(" -");
+            if (nameStart >= 0) {
+                nameStart += 2;
+                String name = getUpperCase(value, nameStart);
+                currentKeyEntry = new KeyEntry(name, currentCaseNumber);
+                value = value.replaceAll(name, currentKeyEntry.getHashKey());
+            }
+        }
+        return value = "\""
+                + value.trim()
                 + "\"";
+    }
+
+    private String getUpperCase(String str, int start) {
+        StringBuilder builder = new StringBuilder();
+        int end = start;
+        char c = str.charAt(end);
+        while (end < str.length() && (Character.isUpperCase(c) || c == ' ' || c == '\n')) {
+            builder.append(str.charAt(end));
+            ++end;
+            c = str.charAt(end);
+        }
+        return builder.toString().trim();
     }
 
     /**
