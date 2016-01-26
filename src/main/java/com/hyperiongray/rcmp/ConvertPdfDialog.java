@@ -32,6 +32,8 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
     /**
      * Creates new form ConvertPdfDialog
+     * @param parent
+     * @param modal
      */
     public ConvertPdfDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -329,7 +331,8 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         File f;
         try {
-            f = new File(new File(".").getCanonicalPath());
+            new File("./output").mkdirs();
+            f = new File(new File("./output").getCanonicalPath());
         } catch (IOException e) {
             logger.error("Problem opening file", e);
             return;
