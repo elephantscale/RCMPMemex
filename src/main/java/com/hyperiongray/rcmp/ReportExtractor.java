@@ -70,8 +70,6 @@ public class ReportExtractor {
     private int docCount;
     private final static String separator = "|";
 
-    private boolean debug = false;
-
     public static ReportExtractor getInstance() {
         return instance;
     }
@@ -82,6 +80,7 @@ public class ReportExtractor {
     }
 
     public void doConvert() throws IOException {
+        logger.info("Preparing to convert here: {}, output results there: {}", inputDir, outputFile);
         initializeOutputFiles();
         // for each report, add extracted information to the appropriate target files
         File[] files = new File(getInputDir()).listFiles();
@@ -103,9 +102,11 @@ public class ReportExtractor {
         Files.append(flatten(markers1, separator), new File(getOutputFile1()), Charset.defaultCharset());
         new File(getOutputFile2()).delete();
         Files.append(flatten(markers2, separator), new File(getOutputFile2()), Charset.defaultCharset());
+        logger.info("Will output into two files: {} and {}", getOutputFile1(), getOutputFile2());
     }
 
     private void writeKeyFile() throws IOException {
+        logger.info("Writing the key file: {}", getOutputKeyFile());
         new File(getOutputKeyFile()).delete();
         Files.append(flatten(markers3, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
         Map<String, KeyEntry> keyTable = KeyTable.getInstance().getKeyTable();
@@ -128,10 +129,8 @@ public class ReportExtractor {
         currentKeyEntry = null;
         String pdfText = extractWithAspose(file);
         extractData(pdfText);
-        if (isDebug()) {
-            System.out.println("File: " + file.getPath() + " ++++++++++++++++++++++++++++");
-            System.out.println(pdfText);
-        }
+        logger.debug("File: {}", file.getPath());
+        logger.trace(pdfText);
     }
 
     private void extractData(String pdfText) throws IOException {
@@ -148,10 +147,8 @@ public class ReportExtractor {
                     int markerStartNext = pdfText.indexOf(nextMarker);
                     if (markerStartNext > 0) {
                         String betweenTheMarkers = pdfText.substring(markerStart + marker.length(), markerStartNext).trim();
-                        if (isDebug()) {
-                            System.out.println("Marker: \n" + marker);
-                            System.out.println("Following text: \n" + betweenTheMarkers);
-                        }
+                        logger.debug("Marker: {}", marker);
+                        logger.debug("Following text: {}", betweenTheMarkers);
                         value = sanitize(marker, betweenTheMarkers);
                     }
                 }
@@ -206,8 +203,10 @@ public class ReportExtractor {
     }
 
     private String flatten(String[] values, String separator) {
+        logger.debug("Flattening {} keys", values.length);
         StringBuilder builder = new StringBuilder();
         for (String value : values) {
+            logger.debug(value.trim());
             builder.append(value.trim()).append(separator);
         }
         if (values.length > 0) {
@@ -311,20 +310,6 @@ public class ReportExtractor {
             c = str.charAt(end);
         }
         return builder.toString().trim();
-    }
-
-    /**
-     * @return the debug
-     */
-    public boolean isDebug() {
-        return debug;
-    }
-
-    /**
-     * @param debug the debug to set
-     */
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 
     private int determineFileType(String pdfText) {

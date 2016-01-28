@@ -79,7 +79,6 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         jLabel3 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         statusArea = new javax.swing.JTextArea();
-        debugCheck = new javax.swing.JCheckBox();
 
         setTitle("Convert PDF reports to CSV");
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -133,10 +132,6 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         statusArea.setRows(5);
         jScrollPane1.setViewportView(statusArea);
 
-        debugCheck.setText("debug");
-        debugCheck.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        debugCheck.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -159,14 +154,11 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
                             .addComponent(jButton2)))
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 199, Short.MAX_VALUE)
-                        .addComponent(debugCheck))
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
                             .addComponent(jLabel3)
                             .addComponent(jLabel2))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 270, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -175,10 +167,8 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(debugCheck))
+                .addGap(20, 20, 20)
+                .addComponent(jLabel1)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(inputDirText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -193,7 +183,7 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cancelButton)
                     .addComponent(okButton)
@@ -223,6 +213,10 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_closeDialog
 
     private void okButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButton1ActionPerformed
+        if (validateInput() == false) {
+            JOptionPane.showMessageDialog(rootPane, "Please choose your input and output");
+            return;
+        }
         doConvert();
     }//GEN-LAST:event_okButton1ActionPerformed
 
@@ -286,7 +280,6 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
-    private javax.swing.JCheckBox debugCheck;
     private javax.swing.JTextField inputDirText;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -353,7 +346,6 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         try {
             ReportExtractor instance = ReportExtractor.getInstance();
             instance.setDocCount(0);
-            instance.setDebug(debugCheck.isSelected());
             instance.doConvert();
             statusArea.append("\nDone extracting information from " + ReportExtractor.getInstance().getDocCount() + " documents");
             statusArea.append("\nFor the results, look in ");
@@ -371,5 +363,9 @@ public class ConvertPdfDialog extends javax.swing.JDialog {
         inputDirText.setText(ReportExtractor.getInstance().getInputDir());
         outputFileText.setText(ReportExtractor.getInstance().getOutputFile());
         super.setVisible(b);
+    }
+    private boolean validateInput() {
+        return !inputDirText.getText().trim().isEmpty() &&
+                !outputFileText.getText().trim().isEmpty();
     }
 }

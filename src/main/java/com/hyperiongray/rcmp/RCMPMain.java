@@ -1,11 +1,15 @@
 package com.hyperiongray.rcmp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author mark
  */
 public class RCMPMain extends javax.swing.JFrame {
-    public static final String VERSION = "0.5";
+    public static final String VERSION = "0.6";
+    private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.class);
     
     /**
      * Creates new form RCMPMain
@@ -113,14 +117,8 @@ public class RCMPMain extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(RCMPMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(RCMPMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(RCMPMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(RCMPMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            logger.error("Some class error", ex);
         }
         //</editor-fold>
         //</editor-fold>
@@ -129,6 +127,7 @@ public class RCMPMain extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
+                logger.info("Starting RCMP version {}", VERSION);
                 new RCMPMain().setVisible(true);
             }
         });
