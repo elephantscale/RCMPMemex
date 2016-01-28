@@ -87,8 +87,11 @@ public class ReportExtractor {
         for (File file : files) {
             try {
                 if (file.isFile() && file.exists()) {
-                    extractInfo(file);
-                    ++docCount;
+                    String fileName = file.getName();
+                    if (fileName.length() > 4 && ".pdf".equalsIgnoreCase(fileName.substring(fileName.length() - 4))) {
+                        extractInfo(file);
+                        ++docCount;
+                    }
                 }
             } catch (IOException | TikaException e) {
                 logger.error("Problem converting file {}", file.getName(), e);
@@ -177,19 +180,26 @@ public class ReportExtractor {
         return pdfText;
     }
 
-    private String extractWithAspose(File file) throws IOException {
-        // Open document
-        com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
+    private String extractWithAspose(File file) {
+        String extractedText = "Text from file " + file.getPath() + " could not be extracted";
+        try {
+            // Open document
+            com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
 
-        // Create TextAbsorber object to extract text
-        com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
+            // Create TextAbsorber object to extract text
+            com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
 
-        // Accept the absorber for all the pages
-        pdfDocument.getPages().accept(textAbsorber);
+            // Accept the absorber for all the pages
+            pdfDocument.getPages().accept(textAbsorber);
 
-        // Get the extracted text
-        String extractedText = textAbsorber.getText();
+            // Get the extracted text
+            extractedText = textAbsorber.getText();
 //        System.out.println("extractedText=\n" + extractedText);
+
+        } catch (Exception e) {
+            //logger.warn("Problem extracting PDF from {}", file.getPath(, e));
+            int x = 0;
+        }
         return extractedText;
     }
 

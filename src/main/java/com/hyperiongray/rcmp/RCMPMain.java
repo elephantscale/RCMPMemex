@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
  * @author mark
  */
 public class RCMPMain extends javax.swing.JFrame {
-    public static final String VERSION = "0.6";
+    public static final String VERSION = "0.7";
     private final static Logger logger = LoggerFactory.getLogger(ConvertPdfDialog.class);
     
     /**
