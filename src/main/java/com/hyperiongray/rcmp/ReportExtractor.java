@@ -1,18 +1,21 @@
 package com.hyperiongray.rcmp;
 
-import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
 
 /**
  *
@@ -56,7 +59,14 @@ public class ReportExtractor {
     private final String[] markers2 = {
         "TICKET   NO:",
         "LAST NAME:",
-        "FIRST NAME:",};
+        "FIRST NAME:",
+        "SEX:",
+        "DRIVER'S LICENCE NO.:",
+        "DRIVER'S LICENCE PROV:",
+        "DOB:",
+        "ADDRESS:",
+        "DESCRIPTION OF OFFENCE:"
+    };
 
     private final String[] markers3 = {
         "Person name",
@@ -89,7 +99,8 @@ public class ReportExtractor {
                 if (file.isFile() && file.exists()) {
                     String fileName = file.getName();
                     if (fileName.length() > 4 && ".pdf".equalsIgnoreCase(fileName.substring(fileName.length() - 4))) {
-                        extractInfo(file);
+                        ExtractedData data = extractInfo(file);
+                        saveData(data);
                         ++docCount;
                     }
                 }
@@ -120,24 +131,24 @@ public class ReportExtractor {
             values[0] = entry.getPersonName();
             values[1] = entry.getTicketNumber();
             values[2] = entry.getHashKey();
-            Files.append(flatten((String[]) values, separator),
-                    new File(getOutputKeyFile()), Charset.defaultCharset());
+            Files.append(flatten((String[]) values, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
         }
     }
 
-    private void extractInfo(File file) throws IOException, TikaException {
+    public ExtractedData extractInfo(File file) throws IOException, TikaException {
         //String pdfText = extractWithTika(file);
         //String pdfText = extractWithPdfBox(file);
         currentCaseNumber = "";
         currentKeyEntry = null;
         String pdfText = extractWithAspose(file);
-        extractData(pdfText);
+        ExtractedData data = extractData(pdfText);
         logger.debug("File: {}", file.getPath());
         logger.trace(pdfText);
+        return data;
     }
 
-    private void extractData(String pdfText) throws IOException {
-        ArrayList<String> values = new ArrayList<>();
+    private ExtractedData extractData(String pdfText) throws IOException {
+        List<String> values = new ArrayList<>();
         int fileType = determineFileType(pdfText);
         String[] markers = fileType == 1 ? markers1 : markers2;
         for (int m = 0; m < markers.length; ++m) {
@@ -158,16 +169,19 @@ public class ReportExtractor {
             }
             values.add(value);
         }
-        String typedOutputFile = fileType == 1 ? getOutputFile1() : getOutputFile2();
-        Files.append(flatten((String[]) values.toArray(new String[0]), separator),
-                new File(typedOutputFile), Charset.defaultCharset());
         // form privacy entry
         if (currentKeyEntry != null) {
             KeyTable.getInstance().put(currentKeyEntry);
         }
+        return new ExtractedData(fileType, markers, values);
     }
 
-    private String extractWithTika(File file) throws IOException, TikaException {
+    private void saveData(ExtractedData data) throws IOException {
+    	String typedOutputFile = data.getFileType()  == 1 ? getOutputFile1() : getOutputFile2();
+        Files.append(flatten((String[]) data.getData().toArray(new String[0]), separator), new File(typedOutputFile), Charset.defaultCharset());
+	}
+
+	private String extractWithTika(File file) throws IOException, TikaException {
         return tika.parseToString(file);
     }
 
