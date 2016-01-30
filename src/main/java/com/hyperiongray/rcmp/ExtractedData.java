@@ -1,22 +1,19 @@
 package com.hyperiongray.rcmp;
 
-import java.util.List;
+import java.util.Map;
 
 public class ExtractedData {
 
 	private int fileType;
-	private List<String> data;
-	private String[] markers;
+	private Map<String, String> data;
 
 	// get
 	public int getFileType() { return fileType; }
-	public List<String> getData() { return data; }
-	public String[] getMarkers() { return markers; }
+	public Map<String, String> getData() { return data; }
 	
-	public ExtractedData(int fileType, String[] markers, List<String> data) {
+	public ExtractedData(int fileType, Map<String, String> data) {
 		this.fileType = fileType;
 		this.data = data;
-		this.markers = markers;
 	}
 
 }

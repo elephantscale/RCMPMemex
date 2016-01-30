@@ -2,7 +2,7 @@ package com.hyperiongray.rcmp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
 import org.apache.tika.exception.TikaException;
 import org.junit.Before;
@@ -28,13 +28,12 @@ public class ReportExtractorTest {
 	@Test
 	public void testType2() throws IOException, TikaException {
 		System.out.println("Started type2 test");
-		File file = new File("sample_data/type2/1 ticket.pdf");
+		File file = new File("sample_data/type2/16 ticket.pdf");
 		ExtractedData data = reportExtractor.extractInfo(file);
-		List<String> extractedData = data.getData();
-		int length = data.getData().size();
-		System.out.println("Extracted " + length + " fields.");
-		for (int i = 0; i < length; i++) {
-			System.out.println(data.getMarkers()[i] + " : " + data.getData().get(i));
+		Map<String, String> extractedData = data.getData();
+		System.out.println("Extracted " + extractedData.size() + " fields.");
+		for (String key : extractedData.keySet()) {
+			System.out.println(key + " " + extractedData.get(key));
 		}
 	}
 	

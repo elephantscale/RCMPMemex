@@ -4,18 +4,23 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aspose.pdf.Rectangle;
+import com.aspose.pdf.TextExtractionOptions;
 import com.google.common.io.Files;
+import com.hyperiongray.rcmp.extract.DataKey;
+import com.hyperiongray.rcmp.extract.MarkerBasedExtractor;
+import com.hyperiongray.rcmp.extract.MarkerBasedExtractor.Type;
+import com.hyperiongray.rcmp.extract.RegexpExtractor;
 
 /**
  *
@@ -26,7 +31,7 @@ public class ReportExtractor {
     private final static Logger logger = LoggerFactory.getLogger(ReportExtractor.class);
 
     private final Tika tika = new Tika();
-
+    
     private final String[] markers1 = {
         "Report no.:",
         "Occurrence Type:",
@@ -79,6 +84,9 @@ public class ReportExtractor {
     private static final ReportExtractor instance = new ReportExtractor();
     private int docCount;
     private final static String separator = "|";
+
+	public static final String NEW_LINE = "#newline";
+	public static final String PARAGRAPH = "#paragraph";
 
     public static ReportExtractor getInstance() {
         return instance;
@@ -141,16 +149,26 @@ public class ReportExtractor {
         currentCaseNumber = "";
         currentKeyEntry = null;
         String pdfText = extractWithAspose(file);
-        ExtractedData data = extractData(pdfText);
+        int fileType = determineFileType(pdfText);
+        ExtractedData extractedData;
+        if (fileType == 1) {
+        	extractedData = extractDataType1(pdfText);
+        } else if (fileType == 2) {
+        	List<String> tokens = extractTokensWithAspose(file);
+        	extractedData = extractDataType2(tokens);
+        } else {
+        	throw new IllegalStateException("Unknown file type " + fileType);
+        }
+//      String pdfText = extractWithAspose(file);
         logger.debug("File: {}", file.getPath());
         logger.trace(pdfText);
-        return data;
+        return extractedData;
     }
 
-    private ExtractedData extractData(String pdfText) throws IOException {
+    private ExtractedData extractDataType1(String pdfText) throws IOException {
         List<String> values = new ArrayList<>();
-        int fileType = determineFileType(pdfText);
-        String[] markers = fileType == 1 ? markers1 : markers2;
+        String[] markers = markers1;
+        Map<String, String> data = new HashMap<String, String>();
         for (int m = 0; m < markers.length; ++m) {
             String marker = markers[m];
             String value = "";
@@ -173,28 +191,127 @@ public class ReportExtractor {
         if (currentKeyEntry != null) {
             KeyTable.getInstance().put(currentKeyEntry);
         }
-        return new ExtractedData(fileType, markers, values);
+        return new ExtractedData(1, data);
     }
 
+    private ExtractedData extractDataType2(List<String> tokens) {
+    	Map<String, String> ret = new HashMap<String, String>();
+    	String text = Utils.join(tokens);
+
+    	ret.put(DataKey.TICKET_NO.fieldName(), new MarkerBasedExtractor("TICKET NO:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.LAST_NAME.fieldName(), new MarkerBasedExtractor("LAST NAME:").extract(text, Type.LINE));
+    	ret.put(DataKey.FIRST_NAME.fieldName(), new MarkerBasedExtractor("FIRST NAME:").extract(text, Type.LINE));
+    	ret.put(DataKey.SEX.fieldName(), new MarkerBasedExtractor("SEX:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.DRIVERS_LICENCE_NO.fieldName(), new MarkerBasedExtractor("DRIVER'S LICENCE NO.:").extract(text, Type.LINE));
+    	ret.put(DataKey.DRIVERS_LICENCE_PROV.fieldName(), new MarkerBasedExtractor("DRIVER'S LICENCE PROV:").extract(text, Type.LINE));
+    	ret.put(DataKey.DRIVERS_LICENCE_PROV.fieldName(), new MarkerBasedExtractor("DRIVER'S LICENCE PROV:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_MAKE.fieldName(), new MarkerBasedExtractor("Make:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_MODEL.fieldName(), new MarkerBasedExtractor("Model:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_YEAR.fieldName(), new MarkerBasedExtractor("Year:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.VEHICLE_LICENCE_NO.fieldName(), new MarkerBasedExtractor("Licence No.:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.VEHICLE_PROVINCE.fieldName(), new MarkerBasedExtractor("Province:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_OWNERS_NAME.fieldName(), new MarkerBasedExtractor("Owner's Name:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_OWNER_ADDRESS.fieldName(), new MarkerBasedExtractor("Address:").extract(text, Type.LINE));
+    	ret.put(DataKey.VEHICLE_EXP_YEAR.fieldName(), new MarkerBasedExtractor("Exp. Year:").extract(text, Type.NEXT_WORD));
+    	
+    	ret.put(DataKey.CLOCKED_SPEED.fieldName(), new RegexpExtractor("Vehicle was clocked at (.*?) km").extract(text));
+    	ret.put(DataKey.SPEED_LIMIT_EXCEEDED.fieldName(), new RegexpExtractor("Exceed Speed Limit of (.*?) km").extract(text));   
+    	ret.put(DataKey.DATE.fieldName(), new RegexpExtractor("On ((.){0,20} at [0-9:]{0,10}+ (AM|PM)?)").extract(text));
+    	ret.put(DataKey.PAYMENT_OPTION.fieldName(), new MarkerBasedExtractor("A payment option of").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.PAYMENT_DUE.fieldName(), new MarkerBasedExtractor("paid no later than").extract(text, Type.NEXT_WORD));
+    	
+    	ret.put(DataKey.DESCRIPTION_OF_OFFENCE.fieldName(), new MarkerBasedExtractor("DESCRIPTION OF OFFENCE:").extract(text, Type.FOLLOWED_BY_EMPTY_LINE));
+    	ret.put(DataKey.POLICE_DETACHMENT.fieldName(), new MarkerBasedExtractor("Police Detachment:").extract(text, Type.LINE));
+    	ret.put(DataKey.OFFICER_UNIT_NUMBER.fieldName(), new MarkerBasedExtractor("Officer Unit Number:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.DOB.fieldName(), new MarkerBasedExtractor("DOB:").extract(text, Type.NEXT_WORD));
+    	ret.put(DataKey.ADDRESS.fieldName(), new MarkerBasedExtractor("ADDRESS:").extract(text, Type.LINE));
+    	
+    	return new ExtractedData(2, ret);
+    }
+    
     private void saveData(ExtractedData data) throws IOException {
     	String typedOutputFile = data.getFileType()  == 1 ? getOutputFile1() : getOutputFile2();
-        Files.append(flatten((String[]) data.getData().toArray(new String[0]), separator), new File(typedOutputFile), Charset.defaultCharset());
+//        Files.append(flatten((String[]) data.getData().toArray(new String[0]), separator), new File(typedOutputFile), Charset.defaultCharset());
 	}
 
-	private String extractWithTika(File file) throws IOException, TikaException {
-        return tika.parseToString(file);
-    }
+//	private String extractWithTika(File file) throws IOException, TikaException {
+//        return tika.parseToString(file);
+//    }
+//
+//    private String extractWithPdfBox(File file) throws IOException {
+//        String pdfText;
+//        try (PDDocument doc = PDDocument.load(file)) {
+//            PDFTextStripper stripper = new PDFTextStripper();
+//            pdfText = stripper.getText(doc);
+//        }
+//        return pdfText;
+//    }
 
-    private String extractWithPdfBox(File file) throws IOException {
-        String pdfText;
-        try (PDDocument doc = PDDocument.load(file)) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            pdfText = stripper.getText(doc);
-        }
-        return pdfText;
-    }
+	private List<String> extractTokensWithAspose(File file) {
+		com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
+		com.aspose.pdf.TextFragmentAbsorber tfa = new com.aspose.pdf.TextFragmentAbsorber();
+		TextExtractionOptions teo = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Raw);
+		tfa.setExtractionOptions(teo);
+		pdfDocument.getPages().accept(tfa);
+		// create TextFragment Collection instance
+		com.aspose.pdf.TextFragmentCollection tfc = tfa.getTextFragments();
+		List<String> tokens = new ArrayList<String>();
+		for (int i = 1; i <= tfc.size(); i++) {
+			String text = tfc.get_Item(i).getText();
+			String token;
+			if (text.trim().isEmpty()) {
+				token = " ";
+			} else {
+				token = text.trim();
+			}
+			if (i > 1 && isProbablySameWord(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
+				token = tokens.get(tokens.size() - 1) + token;
+				tokens.remove(tokens.size() - 1);
+			} else if (i > 1 && isProbablyNewLine(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
+				boolean newParagraph = isProbablyNewParagraph(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle());
+				tokens.add(NEW_LINE);
+				if (newParagraph) {
+					tokens.add(PARAGRAPH);
+				}
+			}
+			if (!isIgnoreWord(token)) {
+				tokens.add(token);
+			}
+		}
+		for (int i = 0; i < tokens.size(); i++) {
+			if (!tokens.get(i).isEmpty() && !(tokens.get(i).charAt(0) == '\n')) {
+				tokens.set(i, tokens.get(i).trim());
+			}
+		}
+		return tokens;
+	}
 
-    private String extractWithAspose(File file) {
+	private boolean isIgnoreWord(String token) {
+		return token != null && token.contains("SECTOR");
+	}
+
+	private boolean isProbablyNewParagraph(Rectangle left, Rectangle right) {
+		if (right.getLLY() + 10 <= left.getLLY() - left.getHeight()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isProbablyNewLine(Rectangle left, Rectangle right) {
+		if (right.getLLY() <= left.getLLY() - left.getHeight()) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isProbablySameWord(Rectangle left, Rectangle right) {
+		if (right.getLLX() - left.getURX() <= 0.2 && Math.abs(left.getLLY() - right.getLLY()) <= 1) {
+			return true;
+		}
+		return false;
+	}
+
+	private String extractWithAspose(File file) {
         String extractedText = "Text from file " + file.getPath() + " could not be extracted";
         try {
             // Open document
@@ -202,7 +319,7 @@ public class ReportExtractor {
 
             // Create TextAbsorber object to extract text
             com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
-
+            
             // Accept the absorber for all the pages
             pdfDocument.getPages().accept(textAbsorber);
 
@@ -211,6 +328,7 @@ public class ReportExtractor {
 //        System.out.println("extractedText=\n" + extractedText);
 
         } catch (Exception e) {
+        	e.printStackTrace();
             //logger.warn("Problem extracting PDF from {}", file.getPath(, e));
             int x = 0;
         }
