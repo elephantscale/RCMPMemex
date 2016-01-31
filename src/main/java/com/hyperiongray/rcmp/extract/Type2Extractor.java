@@ -155,10 +155,10 @@ public class Type2Extractor {
 		if (right.getLLY() >= left.getLLY() + 10) {
 			return true;
 		}
-		if (left.getLLX() + left.getWidth() + 20 < right.getLLX()) {
+		if (left.getLLX() + left.getWidth() + 10 < right.getLLX()) {
 			return true;
 		}
-		if (right.getLLX() + right.getWidth() + 20 < left.getLLX()) {
+		if (right.getLLX() + right.getWidth() + 10 < left.getLLX()) {
 			return true;
 		}
 		return false;
