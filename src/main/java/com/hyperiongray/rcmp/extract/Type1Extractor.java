@@ -4,15 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.hyperiongray.rcmp.ExtractedData;
 
 public class Type1Extractor {
 
-    private final static Logger logger = LoggerFactory.getLogger(Type1Extractor.class);
-    
 	public ExtractedData extractData(String pdfText) throws IOException {
 		Map<DataKey, String> ret = new HashMap<DataKey, String>();
 		BetweenMarkerExtractor extractor = new BetweenMarkerExtractor();

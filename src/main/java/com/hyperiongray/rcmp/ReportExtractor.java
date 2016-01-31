@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
@@ -30,14 +33,6 @@ public class ReportExtractor {
     
     private final Tika tika = new Tika();
     
-    private static final String SUMMARY = "Summary:";
-    private static final String INVOLVED_PERSONS = "Involved persons:";
-    private static final String INVOLVED_ADDRESSES = "Involved addresses:";
-    private static final String CASE_NUMBER = "Report no.:";
-    
-    private KeyEntry currentKeyEntry;
-    private String currentCaseNumber;
-
     private final String[] key_fileColumns = {
         "Person name",
         "Ticket number",
@@ -74,6 +69,14 @@ public class ReportExtractor {
                     if (fileName.length() > 4 && ".pdf".equalsIgnoreCase(fileName.substring(fileName.length() - 4))) {
                         ExtractedData data = extractInfo(file);
                         saveData(data);
+                        String personName = getPersonNameFromSummary(data.getData().get(DataKey.SUMMARY));
+                        String ticketNumber = data.getData().get(DataKey.REPORT_NO);
+                        if (!StringUtils.isEmpty(personName) && !StringUtils.isEmpty(ticketNumber)) { 
+	                        KeyEntry keyEntry = new KeyEntry(personName, ticketNumber);
+	                        KeyTable.getInstance().put(keyEntry);
+                        } else {
+                        	logger.warn("No person name or ticket number found for file " + fileName);
+                        }
                         ++docCount;
                     }
                 }
@@ -81,7 +84,7 @@ public class ReportExtractor {
                 logger.error("Problem converting file {}", file.getName(), e);
             }
         }
-//        writeKeyFile();
+        writeKeyFile();
     }
 
     private void createOutputFiles() throws IOException {
@@ -92,21 +95,21 @@ public class ReportExtractor {
         logger.info("Will output into two files: {} and {}", getOutputFile1(), getOutputFile2());
     }
 
-//    private void writeKeyFile() throws IOException {
-//        logger.info("Writing the key file: {}", getOutputKeyFile());
-//        new File(getOutputKeyFile()).delete();
-//        Files.append(flatten(markers3, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
-//        Map<String, KeyEntry> keyTable = KeyTable.getInstance().getKeyTable();
-//        Iterator<String> iter = keyTable.keySet().iterator();
-//        String[] values = new String[3];
-//        while (iter.hasNext()) {
-//            KeyEntry entry = keyTable.get(iter.next());
-//            values[0] = entry.getPersonName();
-//            values[1] = entry.getTicketNumber();
-//            values[2] = entry.getHashKey();
-//            Files.append(flatten((String[]) values, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
-//        }
-//    }
+    private void writeKeyFile() throws IOException {
+        logger.info("Writing the key file: {}", getOutputKeyFile());
+        new File(getOutputKeyFile()).delete();
+        Files.append(flatten(key_fileColumns, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
+        Map<String, KeyEntry> keyTable = KeyTable.getInstance().getKeyTable();
+        Iterator<String> iter = keyTable.keySet().iterator();
+        String[] values = new String[3];
+        while (iter.hasNext()) {
+            KeyEntry entry = keyTable.get(iter.next());
+            values[0] = entry.getPersonName();
+            values[1] = entry.getTicketNumber();
+            values[2] = entry.getHashKey();
+            Files.append(flatten((String[]) values, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
+        }
+    }
 
     private String[] converToColumnNames(DataKey[] dataKeys) {
     	List<String> ret = new ArrayList<String>();
@@ -117,8 +120,6 @@ public class ReportExtractor {
 	}
 
 	public ExtractedData extractInfo(File file) throws IOException, TikaException {
-        currentCaseNumber = "";
-        currentKeyEntry = null;
         String pdfText = extractWithAspose(file);
         int fileType = determineFileType(pdfText);
         ExtractedData extractedData;
@@ -270,7 +271,19 @@ public class ReportExtractor {
         this.docCount = docCount;
     }
 
-    // TODO
+    private String getPersonNameFromSummary(String value) {
+    	 int nameStart = value.indexOf(" -");
+         if (nameStart >= 0) {
+	           nameStart += 2;
+	           String name = Utils.getUpperCase(value, nameStart);
+	           return name;
+//	           currentKeyEntry = new KeyEntry(name, currentCaseNumber);
+//	           value = value.replaceAll(name, currentKeyEntry.getHashKey());
+         }
+         return "";
+    }
+    
+// TODO
 //    private String sanitize(String marker, String str) {
 //        String value = str.replaceAll("\\s+", " ");
 //        if (CASE_NUMBER.equalsIgnoreCase(marker)) {
@@ -288,18 +301,6 @@ public class ReportExtractor {
 //        return value = "\""
 //                + value.trim()
 //                + "\"";
-//    }
-
-//    private String getUpperCase(String str, int start) {
-//        StringBuilder builder = new StringBuilder();
-//        int end = start;
-//        char c = str.charAt(end);
-//        while (end < str.length() && (Character.isUpperCase(c) || c == ' ' || c == '\n')) {
-//            builder.append(str.charAt(end));
-//            ++end;
-//            c = str.charAt(end);
-//        }
-//        return builder.toString().trim();
 //    }
 
     private int determineFileType(String pdfText) {

@@ -19,4 +19,17 @@ public class Utils {
 		}
 		return text.trim();
 	}
+	
+	public static String getUpperCase(String str, int start) {
+		StringBuilder builder = new StringBuilder();
+		int end = start;
+		char c = str.charAt(end);
+		while (end < str.length() && (Character.isUpperCase(c) || c == ' ' || c == '\n')) {
+			builder.append(str.charAt(end));
+			++end;
+			c = str.charAt(end);
+		}
+		return builder.toString().trim();
+	}
+	
 }
