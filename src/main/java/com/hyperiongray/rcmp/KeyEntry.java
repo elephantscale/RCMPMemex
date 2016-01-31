@@ -13,15 +13,19 @@ public class KeyEntry {
     private final String personName;
     private final String ticketNumber;
     private final String hashKey;
+    private final String officerName;
+    private final String offenderName;
 
-    public KeyEntry(String personName, String ticketNumber) {
+    public KeyEntry(String personName, String ticketNumber, String officerName, String offenderName) {
         this.personName = personName;
         this.ticketNumber = ticketNumber;
+        this.officerName = officerName;
+        this.offenderName = offenderName;
         this.hashKey = makeHash();
     }
 
     private String makeHash() {
-        return DigestUtils.md5Hex(ticketNumber + personName);
+        return DigestUtils.md5Hex(ticketNumber);
     }
 
     /**
@@ -30,7 +34,6 @@ public class KeyEntry {
     public String getPersonName() {
         return personName;
     }
-
 
     /**
      * @return the ticketNumber
@@ -45,5 +48,13 @@ public class KeyEntry {
     public String getHashKey() {
         return hashKey;
     }
+
+	public String getOfficerName() {
+		return officerName;
+	}
+	
+	public String getOffenderName() {
+		return offenderName;
+	}
 
 }

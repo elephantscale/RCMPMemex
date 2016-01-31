@@ -25,7 +25,6 @@ public enum DataKey {
     SUPPLEMENTARY_REPORT("Supplementary report"),
     
     // type 2
-	TICKET_NO("Ticket"),
 	LAST_NAME("Last Name"),
 	FIRST_NAME("First Name"),
 	SEX("Sex"),

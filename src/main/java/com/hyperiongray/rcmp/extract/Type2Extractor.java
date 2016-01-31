@@ -18,7 +18,7 @@ public class Type2Extractor {
 	 private ExtractedData extractData(List<String> tokens) {
 	    	Map<DataKey, String> ret = new HashMap<DataKey, String>();
 	    	String text = Utils.join(tokens);
-	    	ret.put(DataKey.TICKET_NO, new MarkerBasedExtractor("TICKET NO:").extract(text, Type.NEXT_WORD));
+	    	ret.put(DataKey.REPORT_NO, new MarkerBasedExtractor("TICKET NO:").extract(text, Type.NEXT_WORD));
 	    	ret.put(DataKey.LAST_NAME, new MarkerBasedExtractor("LAST NAME:").extract(text, Type.LINE));
 	    	ret.put(DataKey.FIRST_NAME, new MarkerBasedExtractor("FIRST NAME:").extract(text, Type.LINE));
 	    	ret.put(DataKey.SEX, new MarkerBasedExtractor("SEX:").extract(text, Type.NEXT_WORD));
@@ -32,19 +32,16 @@ public class Type2Extractor {
 	    	ret.put(DataKey.VEHICLE_OWNERS_NAME, new MarkerBasedExtractor("Owner's Name:").extract(text, Type.LINE));
 	    	ret.put(DataKey.VEHICLE_OWNER_ADDRESS, new MarkerBasedExtractor("Address:").extract(text, Type.LINE));
 	    	ret.put(DataKey.VEHICLE_EXP_YEAR, new MarkerBasedExtractor("Exp. Year:").extract(text, Type.NEXT_WORD));
-	    	
 	    	ret.put(DataKey.CLOCKED_SPEED, new RegexpExtractor("Vehicle was clocked at (.*?) km").extract(text));
 	    	ret.put(DataKey.SPEED_LIMIT_EXCEEDED, new RegexpExtractor("Exceed Speed Limit of (.*?) km").extract(text));   
 	    	ret.put(DataKey.DATE, new RegexpExtractor("On ((.){0,20} at [0-9:]{0,10}+ (AM|PM)?)").extract(text));
 	    	ret.put(DataKey.PAYMENT_OPTION, new MarkerBasedExtractor("A payment option of").extract(text, Type.NEXT_WORD));
 	    	ret.put(DataKey.PAYMENT_DUE, new MarkerBasedExtractor("paid no later than").extract(text, Type.NEXT_WORD));
-	    	
 	    	ret.put(DataKey.DESCRIPTION_OF_OFFENCE, new MarkerBasedExtractor("DESCRIPTION OF OFFENCE:").extract(text, Type.FOLLOWED_BY_EMPTY_LINE));
 	    	ret.put(DataKey.POLICE_DETACHMENT, new MarkerBasedExtractor("Police Detachment:").extract(text, Type.LINE));
 	    	ret.put(DataKey.OFFICER_UNIT_NUMBER, new MarkerBasedExtractor("Officer Unit Number:").extract(text, Type.NEXT_WORD));
 	    	ret.put(DataKey.DOB, new MarkerBasedExtractor("DOB:").extract(text, Type.NEXT_WORD));
 	    	ret.put(DataKey.ADDRESS, new MarkerBasedExtractor("ADDRESS:").extract(text, Type.LINE));
-	    	
 	    	// Officer notes section
 	    	ret.put(DataKey.OFFICER_NOTES_ISSUING_OFFICER, new MarkerBasedExtractor("Issuing/Informant Officer:").extract(text, Type.LINE));
 	    	ret.put(DataKey.OFFICER_ID, new MarkerBasedExtractor("ID:").extract(text, Type.NEXT_WORD));
@@ -60,11 +57,9 @@ public class Type2Extractor {
 	    	ret.put(DataKey.OFFENCE_IDENTIFICATION, new MarkerBasedExtractor("Offence Identification:").extract(text, Type.LINE));
 	    	ret.put(DataKey.MARKS_OTHER_DESCRIPTIONS, new MarkerBasedExtractor("Marks/Other Descriptors:").extract(text, Type.LINE));
 	    	ret.put(DataKey.ATTITUDE, new MarkerBasedExtractor("Attitude:").extract(text, Type.LINE));
-	    	
 	    	ret.put(DataKey.P_C_NO, new MarkerBasedExtractor("P.C. No:").extract(text, Type.LINE));
 	    	ret.put(DataKey.P_C_MODE, new MarkerBasedExtractor("P.C. Mode:").extract(text, Type.LINE));
 	    	ret.put(DataKey.P_C_DIRECTION, new MarkerBasedExtractor("P.C. Direction:").extract(text, Type.LINE));
-	    	
 	    	ret.put(DataKey.SETUP_NEAR, new MarkerBasedExtractor("Setup Near:").extract(text, Type.LINE));
 	    	ret.put(DataKey.LATITUDE, new MarkerBasedExtractor("Latitude:").extract(text, Type.LINE));
 	    	ret.put(DataKey.LONGITUDE, new MarkerBasedExtractor("Longitude:").extract(text, Type.LINE));
@@ -82,7 +77,6 @@ public class Type2Extractor {
 	    	ret.put(DataKey.ROAD_TYPE, new MarkerBasedExtractor("Road Type:").extract(text, Type.LINE));
 	    	ret.put(DataKey.ROAD_SURFACE, new MarkerBasedExtractor("Road Surface:").extract(text, Type.LINE));
 	    	ret.put(DataKey.ROAD_CONDITION, new MarkerBasedExtractor("Road Condition:").extract(text, Type.LINE));
-	    	
 	    	ret.put(DataKey.SPEED_CALCULATED_BY, new MarkerBasedExtractor("Speed Calculated by:").extract(text, Type.LINE));
 	    	ret.put(DataKey.RADAR_SERIAL_NO, new MarkerBasedExtractor("Serial No.:", Criteria.after("Officer Notes")).extract(text, Type.LINE));
 	    	ret.put(DataKey.RADAR_HEAD_DIRECTION, new MarkerBasedExtractor("Radar Head Direction:").extract(text, Type.LINE));

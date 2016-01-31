@@ -30,7 +30,7 @@ public class ReportExtractorTest {
 	@Test
 	public void testType2() throws IOException, TikaException {
 		System.out.println("Started type2 test");
-		File file = new File("sample_data/type2/12 ticket.pdf");
+		File file = new File("sample_data/type2/6 ticket.pdf");
 		ExtractedData data = reportExtractor.extractInfo(file);
 		Map<DataKey, String> extractedData = data.getData();
 		System.out.println("Extracted " + extractedData.size() + " fields.");

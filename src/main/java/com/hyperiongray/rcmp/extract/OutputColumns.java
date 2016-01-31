@@ -28,7 +28,7 @@ public class OutputColumns {
 	  
 	// list of columns for file type 2 (in order)
 	public static final DataKey[] TYPE_2 = new DataKey[] {
-		DataKey.TICKET_NO,
+		DataKey.REPORT_NO,
 		DataKey.LAST_NAME,
 		DataKey.FIRST_NAME,
 		DataKey.SEX,

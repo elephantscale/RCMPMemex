@@ -26,15 +26,16 @@ import com.hyperiongray.rcmp.extract.Type2Extractor;
 public class ReportExtractor {
 
     private final static Logger logger = LoggerFactory.getLogger(ReportExtractor.class);
+	private static final boolean OBFUSCATE_NAMES = true;
     
     public static final String NEW_LINE = "#newline";
 	public static final String PARAGRAPH = "#paragraph";
     
-//    private final Tika tika = new Tika();
-    
     private final String[] key_fileColumns = {
         "Person name",
         "Ticket number",
+        "Officer name",
+        "Offender name",
         "Unique key                        "  // spaces for Excel cell formatting
     };
 
@@ -67,15 +68,33 @@ public class ReportExtractor {
                     String fileName = file.getName();
                     if (fileName.length() > 4 && ".pdf".equalsIgnoreCase(fileName.substring(fileName.length() - 4))) {
                         ExtractedData data = extractInfo(file);
-                        saveData(data);
                         String personName = getPersonNameFromSummary(data.getData().get(DataKey.SUMMARY));
+                        if (StringUtils.isEmpty(personName)) { // type2 case
+                        	if (!StringUtils.isEmpty(data.getData().get(DataKey.FIRST_NAME)) && !StringUtils.isEmpty(data.getData().get(DataKey.LAST_NAME))) {
+                        		personName = data.getData().get(DataKey.FIRST_NAME) + " " + data.getData().get(DataKey.LAST_NAME);
+                        	}
+                        }
                         String ticketNumber = data.getData().get(DataKey.REPORT_NO);
-                        if (!StringUtils.isEmpty(personName) && !StringUtils.isEmpty(ticketNumber)) { 
-	                        KeyEntry keyEntry = new KeyEntry(personName, ticketNumber);
+                        String officerName = data.getData().get(DataKey.OFFICER_NOTES_ISSUING_OFFICER);
+                        String offenderName = data.getData().get(DataKey.OFFICER_NOTES_OFFENDER);
+                        KeyEntry keyEntry = null;
+                        if (!StringUtils.isEmpty(ticketNumber)) {
+	                        keyEntry = new KeyEntry(personName, ticketNumber, officerName, offenderName);
 	                        KeyTable.getInstance().put(keyEntry);
                         } else {
                         	logger.warn("No person name or ticket number found for file " + fileName);
                         }
+                        if (keyEntry != null && OBFUSCATE_NAMES) {
+                        	obfuscate(data, DataKey.FIRST_NAME, keyEntry.getHashKey());
+                        	obfuscate(data, DataKey.LAST_NAME, keyEntry.getHashKey());
+                        	obfuscate(data, DataKey.OFFICER_NOTES_ISSUING_OFFICER, keyEntry.getHashKey());
+                        	obfuscate(data, DataKey.OFFICER_NOTES_OFFENDER, keyEntry.getHashKey());
+                        	if (!StringUtils.isEmpty(data.getData().get(DataKey.SUMMARY))) {
+                        		String value = data.getData().get(DataKey.SUMMARY);
+                        		data.getData().put(DataKey.SUMMARY, value.replaceAll(keyEntry.getPersonName(), keyEntry.getHashKey()));
+                        	}
+                        }
+                        saveData(data);
                         ++docCount;
                     }
                 }
@@ -86,7 +105,13 @@ public class ReportExtractor {
         writeKeyFile();
     }
 
-    private void createOutputFiles() throws IOException {
+    private void obfuscate(ExtractedData data, DataKey key, String hash) {
+    	if (!StringUtils.isEmpty(data.getData().get(key))) {
+    		data.getData().put(key, hash);
+    	}
+	}
+
+	private void createOutputFiles() throws IOException {
         new File(getOutputFile1()).delete();
         Files.append(flatten(converToColumnNames(OutputColumns.TYPE_1), separator), new File(getOutputFile1()), Charset.defaultCharset());
         new File(getOutputFile2()).delete();
@@ -100,12 +125,14 @@ public class ReportExtractor {
         Files.append(flatten(key_fileColumns, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
         Map<String, KeyEntry> keyTable = KeyTable.getInstance().getKeyTable();
         Iterator<String> iter = keyTable.keySet().iterator();
-        String[] values = new String[3];
+        String[] values = new String[5];
         while (iter.hasNext()) {
             KeyEntry entry = keyTable.get(iter.next());
             values[0] = entry.getPersonName();
             values[1] = entry.getTicketNumber();
-            values[2] = entry.getHashKey();
+            values[2] = entry.getOfficerName();
+            values[3] = entry.getOffenderName();
+            values[4] = entry.getHashKey();
             Files.append(flatten((String[]) values, separator), new File(getOutputKeyFile()), Charset.defaultCharset());
         }
     }
@@ -147,19 +174,6 @@ public class ReportExtractor {
     	}
         Files.append(flatten((String[]) values.toArray(new String[0]), separator), new File(typedOutputFile), Charset.defaultCharset());
 	}
-
-//	private String extractWithTika(File file) throws IOException, TikaException {
-//        return tika.parseToString(file);
-//    }
-//
-//    private String extractWithPdfBox(File file) throws IOException {
-//        String pdfText;
-//        try (PDDocument doc = PDDocument.load(file)) {
-//            PDFTextStripper stripper = new PDFTextStripper();
-//            pdfText = stripper.getText(doc);
-//        }
-//        return pdfText;
-//    }
 
 	private String extractWithAspose(File file) {
         String extractedText = "Text from file " + file.getPath() + " could not be extracted";
