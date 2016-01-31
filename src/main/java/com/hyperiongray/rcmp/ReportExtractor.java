@@ -270,36 +270,37 @@ public class ReportExtractor {
         this.docCount = docCount;
     }
 
-    private String sanitize(String marker, String str) {
-        String value = str.replaceAll("\\s+", " ");
-        if (CASE_NUMBER.equalsIgnoreCase(marker)) {
-            currentCaseNumber = value;
-        }
-        if (SUMMARY.equalsIgnoreCase(marker)) {
-            int nameStart = value.indexOf(" -");
-            if (nameStart >= 0) {
-                nameStart += 2;
-                String name = getUpperCase(value, nameStart);
-                currentKeyEntry = new KeyEntry(name, currentCaseNumber);
-                value = value.replaceAll(name, currentKeyEntry.getHashKey());
-            }
-        }
-        return value = "\""
-                + value.trim()
-                + "\"";
-    }
+    // TODO
+//    private String sanitize(String marker, String str) {
+//        String value = str.replaceAll("\\s+", " ");
+//        if (CASE_NUMBER.equalsIgnoreCase(marker)) {
+//            currentCaseNumber = value;
+//        }
+//        if (SUMMARY.equalsIgnoreCase(marker)) {
+//            int nameStart = value.indexOf(" -");
+//            if (nameStart >= 0) {
+//                nameStart += 2;
+//                String name = getUpperCase(value, nameStart);
+//                currentKeyEntry = new KeyEntry(name, currentCaseNumber);
+//                value = value.replaceAll(name, currentKeyEntry.getHashKey());
+//            }
+//        }
+//        return value = "\""
+//                + value.trim()
+//                + "\"";
+//    }
 
-    private String getUpperCase(String str, int start) {
-        StringBuilder builder = new StringBuilder();
-        int end = start;
-        char c = str.charAt(end);
-        while (end < str.length() && (Character.isUpperCase(c) || c == ' ' || c == '\n')) {
-            builder.append(str.charAt(end));
-            ++end;
-            c = str.charAt(end);
-        }
-        return builder.toString().trim();
-    }
+//    private String getUpperCase(String str, int start) {
+//        StringBuilder builder = new StringBuilder();
+//        int end = start;
+//        char c = str.charAt(end);
+//        while (end < str.length() && (Character.isUpperCase(c) || c == ' ' || c == '\n')) {
+//            builder.append(str.charAt(end));
+//            ++end;
+//            c = str.charAt(end);
+//        }
+//        return builder.toString().trim();
+//    }
 
     private int determineFileType(String pdfText) {
         return !pdfText.contains( "TICKET   NO:") ? 1 : 2;

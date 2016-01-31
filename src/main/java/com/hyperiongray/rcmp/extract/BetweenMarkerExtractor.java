@@ -1,31 +1,35 @@
 package com.hyperiongray.rcmp.extract;
 
-public class BetweenMarkerExtractor {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public String extract(String marker, String nextMarker, String text) {
-		return "todo";
-//		for (int m = 0; m < dataKeysType1.length; ++m) {
-//			DataKey dataKey = dataKeysType1[m];
-//			String value = "";
-//			int markerStart = pdfText.indexOf(marker);
-//			if (markerStart >= 0) {
-//				if (m < dataKeysType1.length - 1) {
-//					DataKey nextKey = dataKeysType1[m + 1];
-//					String value = new BetweenMarkerExtractor().extract(key, nextKey, pdfText);
-//					int markerStartNext = pdfText.indexOf(nextMarker);
-//					if (markerStartNext > 0) {
-//						String betweenTheMarkers = pdfText.substring(markerStart + marker.length(), markerStartNext).trim();
-//						logger.debug("Marker: {}", marker);
-//						logger.debug("Following text: {}", betweenTheMarkers);
-//						value = sanitize(marker, betweenTheMarkers);
-//					}
-//				}
-//			}
-//		}
+public class BetweenMarkerExtractor {
+	private final static Logger logger = LoggerFactory.getLogger(Type1Extractor.class);
+
+	public String extract(String marker, String nextMarker, String pdfText) {
+		int markerStart = pdfText.indexOf(marker);
+		String value = "";
+		if (markerStart >= 0) {
+			int markerStartNext = pdfText.indexOf(nextMarker);
+			if (markerStartNext > 0) {
+				String betweenTheMarkers = pdfText.substring(markerStart + marker.length(), markerStartNext).trim();
+				logger.debug("Marker: {}", marker);
+				logger.debug("Following text: {}", betweenTheMarkers);
+				value = sanitize(marker, betweenTheMarkers);
+			}
+		}
+		return value;
 //		// form privacy entry
 //		if (currentKeyEntry != null) {
 //			KeyTable.getInstance().put(currentKeyEntry);
 //		}
 	}
+	
+	  private String sanitize(String marker, String str) {
+		  String value = str.replaceAll("\\s+", " ");
+	      return value = "\""
+	                + value.trim()
+	                + "\"";
+	  }
 	
 }

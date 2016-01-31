@@ -16,49 +16,27 @@ public class Type1Extractor {
 	public ExtractedData extractData(String pdfText) throws IOException {
 		Map<DataKey, String> ret = new HashMap<DataKey, String>();
 		BetweenMarkerExtractor extractor = new BetweenMarkerExtractor();
-		ret.put(DataKey.REPORT_NO, extractor.extract("Report No.:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.OCCURRENCE_TYPE, extractor.extract("Occurrence Type:", "Occurrence Time:", pdfText));
-		ret.put(DataKey.OCCURRENCE_TIME, extractor.extract("Occurrence Time:", "Repor:", pdfText));
-		ret.put(DataKey.REPORTED_TIME, extractor.extract("Reported time:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.PLACE_OF_OFFENCE, extractor.extract("Place of offence:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.CLEARANCE_STATUS, extractor.extract("Clearance status:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.CONCLUDED, extractor.extract("Concluded:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.CONCLUDED_DATE, extractor.extract("Concluded date:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.SUMMARY, extractor.extract("Summary:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.REMARKS, extractor.extract("Remarks:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.ASSOCIATED_OCCURRENCES, extractor.extract("Associated occurrences:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_PERSONS, extractor.extract("Involved persons:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_ADDRESSES, extractor.extract("Involved addresses:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_COMM_ADDRESSES, extractor.extract("Involved comm addresses:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_VEHICLES, extractor.extract("Involved vehicles:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_OFFICERS, extractor.extract("Involved officers:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.INVOLVED_PROPERTY, extractor.extract("Involved property:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.MODUS_OPERANDI, extractor.extract("Modus operandi:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.REPORTS, extractor.extract("Reports:", "Occurrence Type:", pdfText));
-		ret.put(DataKey.SUPPLEMENTARY_REPORT, extractor.extract("Supplementary report:", "Occurrence Type:", pdfText));
+		ret.put(DataKey.REPORT_NO, extractor.extract("Report no.:", "Occurrence Type:", pdfText));
+		ret.put(DataKey.OCCURRENCE_TYPE, extractor.extract("Occurrence Type:", "Occurrence time:", pdfText));
+		ret.put(DataKey.OCCURRENCE_TIME, extractor.extract("Occurrence time:", "Reported time:", pdfText));
+		ret.put(DataKey.REPORTED_TIME, extractor.extract("Reported time:", "Place of offence:", pdfText));
+		ret.put(DataKey.PLACE_OF_OFFENCE, extractor.extract("Place of offence:", "Clearance status:", pdfText));
+		ret.put(DataKey.CLEARANCE_STATUS, extractor.extract("Clearance status:", "Concluded:", pdfText));
+		ret.put(DataKey.CONCLUDED, extractor.extract("Concluded:", "Concluded date:", pdfText));
+		ret.put(DataKey.CONCLUDED_DATE, extractor.extract("Concluded date:", "Summary:", pdfText));
+		ret.put(DataKey.SUMMARY, extractor.extract("Summary:", "Remarks:", pdfText));
+		ret.put(DataKey.REMARKS, extractor.extract("Remarks:", "Associated occurrences:", pdfText));
+		ret.put(DataKey.ASSOCIATED_OCCURRENCES, extractor.extract("Associated occurrences:", "Involved persons:", pdfText));
+		ret.put(DataKey.INVOLVED_PERSONS, extractor.extract("Involved persons:", "Involved addresses:", pdfText));
+		ret.put(DataKey.INVOLVED_ADDRESSES, extractor.extract("Involved addresses:", "Involved comm addresses:", pdfText));
+		ret.put(DataKey.INVOLVED_COMM_ADDRESSES, extractor.extract("Involved comm addresses:", "Involved vehicles:", pdfText));
+		ret.put(DataKey.INVOLVED_VEHICLES, extractor.extract("Involved vehicles:", "Involved officers:", pdfText));
+		ret.put(DataKey.INVOLVED_OFFICERS, extractor.extract("Involved officers:", "Involved property:", pdfText));
+		ret.put(DataKey.INVOLVED_PROPERTY, extractor.extract("Involved property:", "Modus operandi:", pdfText));
+		ret.put(DataKey.MODUS_OPERANDI, extractor.extract("Modus operandi:", "Reports:", pdfText));
+		ret.put(DataKey.REPORTS, extractor.extract("Reports:", "Supplementary report:", pdfText));
+		ret.put(DataKey.SUPPLEMENTARY_REPORT, extractor.extract("Supplementary report:", "", pdfText));
 		return new ExtractedData(1, ret);
 	}
 	
-//	REPORT_NO("Report no.:"),
-//    OCCURRENCE_TYPE("Occurrence Type:"),
-//    OCCURRENCE_TIME("Occurrence time:"),
-//    REPORETD_TIME("Reported time:"),
-//    PLACE_OF_OFFENCE("Place of offence:"),
-//    CLEARANCE_STATUS("Clearance status:"),
-//    CONCLUDED("Concluded:"),
-//    CONCLUDED_DATE("Concluded date:"),
-//    SUMMARY("Summary:"),
-//    REMARKS("Remarks:"),
-//    ASSOCIATED_OCCURRENCES("Associated occurrences:"),
-//    INVOLVED_PERSONS("Involved persons:"),
-//    INVOLVED_ADDRESSES("Involved addresses:"),
-//    INVOLVED_COMM_ADDRESSES("Involved comm addresses:"),
-//    INVOLVED_VEHICLES("Involved vehicles:"),
-//    INVOLVED_OFFICERS("Involved officers:"),
-//    INVOLVED_PROPERTY("Involved property:"),
-//    MODUS_OPERANDI("Modus operandi:"),
-//    REPORTS("Reports:"),
-//    SUPPLEMENTARY_REPORT("Supplementary report:"),
-//    
-
 }
