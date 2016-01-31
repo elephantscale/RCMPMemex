@@ -7,7 +7,7 @@ public class OutputColumns {
     	DataKey.REPORT_NO,
     	DataKey.OCCURRENCE_TYPE,
     	DataKey.OCCURRENCE_TIME,
-    	DataKey.REPORETD_TIME,
+    	DataKey.REPORTED_TIME,
     	DataKey.PLACE_OF_OFFENCE,
     	DataKey.CLEARANCE_STATUS,
     	DataKey.CONCLUDED,
