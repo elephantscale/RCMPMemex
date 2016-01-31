@@ -22,7 +22,7 @@ public class ReportExtractorTest {
 	@Test
 	public void testType1() throws IOException, TikaException {
 		System.out.println("Started type1 test");
-		File file = new File("sample_data/type1/PROS 1.pdf");
+		File file = new File("sample_data/type1/PROS 2.pdf");
 		ExtractedData data = reportExtractor.extractInfo(file);
 		Map<DataKey, String> extractedData = data.getData();
 		System.out.println("Extracted " + extractedData.size() + " fields.");
