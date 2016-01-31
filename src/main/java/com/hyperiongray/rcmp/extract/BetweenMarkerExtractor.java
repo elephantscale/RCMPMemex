@@ -23,7 +23,7 @@ public class BetweenMarkerExtractor {
 	
 	private String sanitize(String marker, String str) {
 		String value = str.replaceAll("\\s+", " ");
-		return value = "\"" + value.trim() + "\"";
+		return value.trim();
 	}
 	
 }

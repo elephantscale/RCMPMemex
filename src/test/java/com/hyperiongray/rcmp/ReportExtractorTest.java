@@ -24,7 +24,11 @@ public class ReportExtractorTest {
 		System.out.println("Started type1 test");
 		File file = new File("sample_data/type1/PROS 1.pdf");
 		ExtractedData data = reportExtractor.extractInfo(file);
-		// TODO assert
+		Map<DataKey, String> extractedData = data.getData();
+		System.out.println("Extracted " + extractedData.size() + " fields.");
+		for (DataKey key : extractedData.keySet()) {
+			System.out.println(key + " >> " + extractedData.get(key));
+		}
 	}
 	
 	@Test

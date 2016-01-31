@@ -39,7 +39,7 @@ public class MarkerBasedExtractor {
 		}
 		int lastIndex = 0;
 		if (extractType == Type.LINE) {
-			int newLine = text.indexOf(ReportExtractor.NEW_LINE, pos + 1);
+			int newLine = text.indexOf(ReportExtractor.SEPARATOR, pos + 1);
 			if (newLine == -1) {
 				newLine = text.length();
 			}
@@ -55,6 +55,12 @@ public class MarkerBasedExtractor {
 				nextParagraph = text.length();
 			}
 			lastIndex = nextParagraph;
+		} else if (extractType == Type.AFTER_SEPARATOR) {
+			lastIndex = pos + marker.length();
+			lastIndex = skipWhitespace(lastIndex, text);
+			lastIndex = skipMetaword(lastIndex, text);
+			lastIndex = skipWhitespace(lastIndex, text);
+			lastIndex = skipWord(lastIndex, text);
 		} else {
 			throw new IllegalStateException("Type " + extractType + " is not implemented.");
 		}
@@ -79,8 +85,8 @@ public class MarkerBasedExtractor {
 
 	private int skipMetaword(int index, String text) {
 		if (text.charAt(index) == '#') {
-			if (text.indexOf(ReportExtractor.NEW_LINE, index) == index) {
-				index += ReportExtractor.NEW_LINE.length();
+			if (text.indexOf(ReportExtractor.SEPARATOR, index) == index) {
+				index += ReportExtractor.SEPARATOR.length();
 			}
 			if (text.indexOf(ReportExtractor.PARAGRAPH, index) == index) {
 				index += ReportExtractor.PARAGRAPH.length();
@@ -93,7 +99,7 @@ public class MarkerBasedExtractor {
 		if (value == null) {
 			return null;
 		}
-		value = value.replaceAll(ReportExtractor.NEW_LINE, " ");
+		value = value.replaceAll(ReportExtractor.SEPARATOR, " ");
 		value = value.replaceAll(ReportExtractor.PARAGRAPH, " ");
 		value = value.replaceAll("\\s+", " ");
 		value = value.trim();
@@ -103,7 +109,8 @@ public class MarkerBasedExtractor {
 	public enum Type {
 		LINE,
 		NEXT_WORD,
-		FOLLOWED_BY_EMPTY_LINE
+		FOLLOWED_BY_EMPTY_LINE,
+		AFTER_SEPARATOR
 	}
 
 }

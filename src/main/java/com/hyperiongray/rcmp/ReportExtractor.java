@@ -13,6 +13,7 @@ import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aspose.pdf.TextExtractionOptions;
 import com.google.common.io.Files;
 import com.hyperiongray.rcmp.extract.DataKey;
 import com.hyperiongray.rcmp.extract.OutputColumns;
@@ -28,12 +29,12 @@ public class ReportExtractor {
     private final static Logger logger = LoggerFactory.getLogger(ReportExtractor.class);
 	private static final boolean OBFUSCATE_NAMES = true;
     
-    public static final String NEW_LINE = "#newline";
+    public static final String SEPARATOR = "#separator";
 	public static final String PARAGRAPH = "#paragraph";
     
     private final String[] key_fileColumns = {
         "Person name",
-        "Ticket number",
+        "Report/Ticket number",
         "Officer name",
         "Offender name",
         "Unique key                        "  // spaces for Excel cell formatting
@@ -149,10 +150,11 @@ public class ReportExtractor {
         String pdfText = extractWithAspose(file);
         int fileType = determineFileType(pdfText);
         ExtractedData extractedData;
+        List<String> tokens = extractTokensWithAspose(file);
         if (fileType == 1) {
-        	extractedData = new Type1Extractor().extractData(pdfText);
+        	extractedData = new Type1Extractor().extractData(tokens, pdfText);
         } else if (fileType == 2) {
-        	extractedData = new Type2Extractor().extractData(file);
+        	extractedData = new Type2Extractor().extractData(tokens);
         } else {
         	throw new IllegalStateException("Unknown file type " + fileType);
         }
@@ -160,6 +162,45 @@ public class ReportExtractor {
         logger.trace(pdfText);
         return extractedData;
     }
+
+	private List<String> extractTokensWithAspose(File file) {
+		com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
+		com.aspose.pdf.TextFragmentAbsorber tfa = new com.aspose.pdf.TextFragmentAbsorber();
+		TextExtractionOptions teo = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Raw);
+		tfa.setExtractionOptions(teo);
+		pdfDocument.getPages().accept(tfa);
+		// create TextFragment Collection instance
+		com.aspose.pdf.TextFragmentCollection tfc = tfa.getTextFragments();
+		List<String> tokens = new ArrayList<String>();
+		for (int i = 1; i <= tfc.size(); i++) {
+			String text = tfc.get_Item(i).getText();
+			String token;
+			if (text.trim().isEmpty()) {
+				token = " ";
+			} else {
+				token = text.trim();
+			}
+			if (i > 1 && Utils.isProbablySameWord(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
+				token = tokens.get(tokens.size() - 1) + token;
+				tokens.remove(tokens.size() - 1);
+			} else if (i > 1 && Utils.isProbablyNewLine(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
+				boolean newParagraph = Utils.isProbablyNewParagraph(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle());
+				tokens.add(ReportExtractor.SEPARATOR);
+				if (newParagraph) {
+					tokens.add(ReportExtractor.PARAGRAPH);
+				}
+			}
+			if (!Utils.isIgnoreWord(token)) {
+				tokens.add(token);
+			}
+		}
+		for (int i = 0; i < tokens.size(); i++) {
+			if (!tokens.get(i).isEmpty() && !(tokens.get(i).charAt(0) == '\n')) {
+				tokens.set(i, tokens.get(i).trim());
+			}
+		}
+		return tokens;
+	}
 
     private void saveData(ExtractedData data) throws IOException {
     	String typedOutputFile = data.getFileType()  == 1 ? getOutputFile1() : getOutputFile2();
@@ -289,25 +330,6 @@ public class ReportExtractor {
          return "";
     }
     
-//    private String sanitize(String marker, String str) {
-//        String value = str.replaceAll("\\s+", " ");
-//        if (CASE_NUMBER.equalsIgnoreCase(marker)) {
-//            currentCaseNumber = value;
-//        }
-//        if (SUMMARY.equalsIgnoreCase(marker)) {
-//            int nameStart = value.indexOf(" -");
-//            if (nameStart >= 0) {
-//                nameStart += 2;
-//                String name = getUpperCase(value, nameStart);
-//                currentKeyEntry = new KeyEntry(name, currentCaseNumber);
-//                value = value.replaceAll(name, currentKeyEntry.getHashKey());
-//            }
-//        }
-//        return value = "\""
-//                + value.trim()
-//                + "\"";
-//    }
-
     private int determineFileType(String pdfText) {
         return !pdfText.contains( "TICKET   NO:") ? 1 : 2;
     }

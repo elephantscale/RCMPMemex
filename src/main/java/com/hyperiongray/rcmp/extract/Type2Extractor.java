@@ -1,21 +1,16 @@
 package com.hyperiongray.rcmp.extract;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.aspose.pdf.Rectangle;
-import com.aspose.pdf.TextExtractionOptions;
 import com.hyperiongray.rcmp.ExtractedData;
-import com.hyperiongray.rcmp.ReportExtractor;
 import com.hyperiongray.rcmp.Utils;
 import com.hyperiongray.rcmp.extract.MarkerBasedExtractor.Type;
 
 public class Type2Extractor {
 
-	 private ExtractedData extractData(List<String> tokens) {
+	 public ExtractedData extractData(List<String> tokens) {
 	    	Map<DataKey, String> ret = new HashMap<DataKey, String>();
 	    	String text = Utils.join(tokens);
 	    	ret.put(DataKey.REPORT_NO, new MarkerBasedExtractor("TICKET NO:").extract(text, Type.NEXT_WORD));
@@ -86,82 +81,4 @@ public class Type2Extractor {
 	    	return new ExtractedData(2, ret);
     }
 
-	public ExtractedData extractData(File file) {
-		List<String> tokens = extractTokensWithAspose(file);
-    	return extractData(tokens);
-	}
-	
-	private List<String> extractTokensWithAspose(File file) {
-		com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
-		com.aspose.pdf.TextFragmentAbsorber tfa = new com.aspose.pdf.TextFragmentAbsorber();
-		TextExtractionOptions teo = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Raw);
-		tfa.setExtractionOptions(teo);
-		pdfDocument.getPages().accept(tfa);
-		// create TextFragment Collection instance
-		com.aspose.pdf.TextFragmentCollection tfc = tfa.getTextFragments();
-		List<String> tokens = new ArrayList<String>();
-		for (int i = 1; i <= tfc.size(); i++) {
-			String text = tfc.get_Item(i).getText();
-			String token;
-			if (text.trim().isEmpty()) {
-				token = " ";
-			} else {
-				token = text.trim();
-			}
-			if (i > 1 && isProbablySameWord(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
-				token = tokens.get(tokens.size() - 1) + token;
-				tokens.remove(tokens.size() - 1);
-			} else if (i > 1 && isProbablyNewLine(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle())) {
-				boolean newParagraph = isProbablyNewParagraph(tfc.get_Item(i - 1).getRectangle(), tfc.get_Item(i).getRectangle());
-				tokens.add(ReportExtractor.NEW_LINE);
-				if (newParagraph) {
-					tokens.add(ReportExtractor.PARAGRAPH);
-				}
-			}
-			if (!isIgnoreWord(token)) {
-				tokens.add(token);
-			}
-		}
-		for (int i = 0; i < tokens.size(); i++) {
-			if (!tokens.get(i).isEmpty() && !(tokens.get(i).charAt(0) == '\n')) {
-				tokens.set(i, tokens.get(i).trim());
-			}
-		}
-		return tokens;
-	}
-
-	private boolean isIgnoreWord(String token) {
-		return token != null && token.contains("SECTOR");
-	}
-
-	private boolean isProbablyNewParagraph(Rectangle left, Rectangle right) {
-		if (right.getLLY() + 10 <= left.getLLY() - left.getHeight()) {
-			return true;
-		}
-		return false;
-	}
-	
-	private boolean isProbablyNewLine(Rectangle left, Rectangle right) {
-		if (right.getLLY() <= left.getLLY() - left.getHeight()) {
-			return true;
-		}
-		if (right.getLLY() >= left.getLLY() + 10) {
-			return true;
-		}
-		if (left.getLLX() + left.getWidth() + 10 < right.getLLX()) {
-			return true;
-		}
-		if (right.getLLX() + right.getWidth() + 10 < left.getLLX()) {
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isProbablySameWord(Rectangle left, Rectangle right) {
-		if (right.getLLX() - left.getURX() <= 0.2 && Math.abs(left.getLLY() - right.getLLY()) <= 1) {
-			return true;
-		}
-		return false;
-	}
-	 
 }
