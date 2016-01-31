@@ -263,6 +263,9 @@ public class ReportExtractor {
     }
 
     private String getPersonNameFromSummary(String value) {
+    	 if (value == null) {
+    		return "";
+    	 }
     	 int nameStart = value.indexOf(" -");
          if (nameStart >= 0) {
 	           nameStart += 2;
