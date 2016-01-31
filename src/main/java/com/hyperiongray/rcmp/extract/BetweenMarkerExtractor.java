@@ -19,17 +19,11 @@ public class BetweenMarkerExtractor {
 			}
 		}
 		return value;
-//		// form privacy entry
-//		if (currentKeyEntry != null) {
-//			KeyTable.getInstance().put(currentKeyEntry);
-//		}
 	}
 	
-	  private String sanitize(String marker, String str) {
-		  String value = str.replaceAll("\\s+", " ");
-	      return value = "\""
-	                + value.trim()
-	                + "\"";
-	  }
+	private String sanitize(String marker, String str) {
+		String value = str.replaceAll("\\s+", " ");
+		return value = "\"" + value.trim() + "\"";
+	}
 	
 }

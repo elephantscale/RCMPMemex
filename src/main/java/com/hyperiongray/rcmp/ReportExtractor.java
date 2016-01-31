@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,7 @@ public class ReportExtractor {
     public static final String NEW_LINE = "#newline";
 	public static final String PARAGRAPH = "#paragraph";
     
-    private final Tika tika = new Tika();
+//    private final Tika tika = new Tika();
     
     private final String[] key_fileColumns = {
         "Person name",
@@ -165,18 +164,10 @@ public class ReportExtractor {
 	private String extractWithAspose(File file) {
         String extractedText = "Text from file " + file.getPath() + " could not be extracted";
         try {
-            // Open document
             com.aspose.pdf.Document pdfDocument = new com.aspose.pdf.Document(file.getPath());
-
-            // Create TextAbsorber object to extract text
             com.aspose.pdf.TextAbsorber textAbsorber = new com.aspose.pdf.TextAbsorber();
-            
-            // Accept the absorber for all the pages
             pdfDocument.getPages().accept(textAbsorber);
-
-            // Get the extracted text
             extractedText = textAbsorber.getText();
-
         } catch (Exception e) {
         	logger.error("Problem extracting PDF from " + file.getPath(), e);
         }
@@ -277,13 +268,10 @@ public class ReportExtractor {
 	           nameStart += 2;
 	           String name = Utils.getUpperCase(value, nameStart);
 	           return name;
-//	           currentKeyEntry = new KeyEntry(name, currentCaseNumber);
-//	           value = value.replaceAll(name, currentKeyEntry.getHashKey());
          }
          return "";
     }
     
-// TODO
 //    private String sanitize(String marker, String str) {
 //        String value = str.replaceAll("\\s+", " ");
 //        if (CASE_NUMBER.equalsIgnoreCase(marker)) {

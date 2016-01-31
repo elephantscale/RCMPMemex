@@ -170,6 +170,5 @@ public class Type2Extractor {
 		}
 		return false;
 	}
-
 	 
 }
