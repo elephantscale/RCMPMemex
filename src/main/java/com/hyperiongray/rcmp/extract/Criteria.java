@@ -1,5 +1,7 @@
 package com.hyperiongray.rcmp.extract;
 
+import java.util.regex.Pattern;
+
 public abstract class Criteria {
 
 	
@@ -18,6 +20,18 @@ public abstract class Criteria {
 	public static Criteria all() {
 		return new Criteria() {
 			@Override public boolean accept(String text, String term) {
+				return true;
+			}
+		};
+	}
+	
+	public static Criteria stopWord(final String regex) {
+		return new Criteria() {
+			@Override public boolean accept(String text, String term) {
+				Pattern p = Pattern.compile(term);
+				if (p.matcher(text).find()) {
+					return false;
+				}
 				return true;
 			}
 		};

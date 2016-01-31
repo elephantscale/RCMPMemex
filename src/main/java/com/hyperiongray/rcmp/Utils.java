@@ -39,7 +39,16 @@ public class Utils {
 	}
 	
 	public static boolean isIgnoreWord(String token) {
-		return token != null && token.contains("SECTOR");
+		if (token == null) {
+			return false;
+		}
+		if (token.contains("SECTOR")) {
+			return true;
+		}
+		if (token.equals("z")) {
+			return true;
+		}
+		return false;
 	}
 
 	public static boolean isProbablyNewParagraph(Rectangle left, Rectangle right) {

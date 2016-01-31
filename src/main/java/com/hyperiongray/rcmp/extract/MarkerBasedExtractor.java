@@ -55,12 +55,16 @@ public class MarkerBasedExtractor {
 				nextParagraph = text.length();
 			}
 			lastIndex = nextParagraph;
-		} else if (extractType == Type.AFTER_SEPARATOR) {
+		} else if (extractType == Type.UNTIL_NEXT_PARAGRAPH) {
 			lastIndex = pos + marker.length();
 			lastIndex = skipWhitespace(lastIndex, text);
 			lastIndex = skipMetaword(lastIndex, text);
 			lastIndex = skipWhitespace(lastIndex, text);
-			lastIndex = skipWord(lastIndex, text);
+			int newLine = text.indexOf(ReportExtractor.PARAGRAPH, lastIndex + 1);
+			if (newLine == -1) {
+				newLine = text.length();
+			}
+			lastIndex = newLine;
 		} else {
 			throw new IllegalStateException("Type " + extractType + " is not implemented.");
 		}
@@ -110,7 +114,7 @@ public class MarkerBasedExtractor {
 		LINE,
 		NEXT_WORD,
 		FOLLOWED_BY_EMPTY_LINE,
-		AFTER_SEPARATOR
+		UNTIL_NEXT_PARAGRAPH
 	}
 
 }
