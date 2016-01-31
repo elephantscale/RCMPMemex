@@ -31,5 +31,9 @@ public class Utils {
 		}
 		return builder.toString().trim();
 	}
+
+	public static String notNull(String value) {
+		return value == null ? "" : value;
+	}
 	
 }

@@ -201,8 +201,8 @@ public class ReportExtractor {
         logger.debug("Flattening {} keys", values.length);
         StringBuilder builder = new StringBuilder();
         for (String value : values) {
-            logger.debug(value.trim());
-            builder.append(value.trim()).append(separator);
+            logger.debug(Utils.notNull(value).trim());
+            builder.append(Utils.notNull(value).trim()).append(separator);
         }
         if (values.length > 0) {
             builder.delete(builder.length() - 1, builder.length());
