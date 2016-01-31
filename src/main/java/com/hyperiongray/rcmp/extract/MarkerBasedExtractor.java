@@ -2,18 +2,40 @@ package com.hyperiongray.rcmp.extract;
 
 import com.hyperiongray.rcmp.ReportExtractor;
 
+
 public class MarkerBasedExtractor {
 
 	private String marker;
+	private Criteria criteria;
 	
 	public MarkerBasedExtractor(String marker) {
+		this(marker, Criteria.all());
+	}
+	
+	public MarkerBasedExtractor(String marker, Criteria criteria) {
 		this.marker = marker;
+		this.criteria = criteria;
 	}
 
 	public String extract(String text, Type extractType) {
-		int pos = text.indexOf(marker);
+		int index = 0;
+		while (true) {
+			int pos = text.indexOf(marker, index);
+			index = find(text, extractType, index);
+			if (index < 0) {
+				return null;
+			}
+			String value = text.substring(pos + marker.length(), index);
+			if (criteria.accept(text, value)) {
+				return sanitize(value);
+			}
+		}
+	}
+	
+	private int find(String text, Type extractType, int findFrom) {
+		int pos = text.indexOf(marker, findFrom);
 		if (pos < 0) {
-			return null;
+			return -1;
 		}
 		int lastIndex = 0;
 		if (extractType == Type.LINE) {
@@ -36,8 +58,7 @@ public class MarkerBasedExtractor {
 		} else {
 			throw new IllegalStateException("Type " + extractType + " is not implemented.");
 		}
-		String value = text.substring(pos + marker.length(), lastIndex);
-		return sanitize(value);
+		return lastIndex;
 	}
 	
 	private int skipWord(int index, String text) {

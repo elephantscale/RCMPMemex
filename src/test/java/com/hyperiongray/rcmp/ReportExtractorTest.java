@@ -8,6 +8,8 @@ import org.apache.tika.exception.TikaException;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.hyperiongray.rcmp.extract.DataKey;
+
 public class ReportExtractorTest {
 
 	private ReportExtractor reportExtractor;
@@ -28,12 +30,12 @@ public class ReportExtractorTest {
 	@Test
 	public void testType2() throws IOException, TikaException {
 		System.out.println("Started type2 test");
-		File file = new File("sample_data/type2/16 ticket.pdf");
+		File file = new File("sample_data/type2/18 ticket.pdf");
 		ExtractedData data = reportExtractor.extractInfo(file);
-		Map<String, String> extractedData = data.getData();
+		Map<DataKey, String> extractedData = data.getData();
 		System.out.println("Extracted " + extractedData.size() + " fields.");
-		for (String key : extractedData.keySet()) {
-			System.out.println(key + " " + extractedData.get(key));
+		for (DataKey key : extractedData.keySet()) {
+			System.out.println(key + " >> " + extractedData.get(key));
 		}
 	}
 	
