@@ -12,7 +12,6 @@ public class RegexpExtractor {
 	}
 
 	public String extract(String text) {
-		System.out.println(text);
 		Pattern pattern = Pattern.compile(regexp);
 		Matcher matcher = pattern.matcher(text);
 		if (matcher.find()) {

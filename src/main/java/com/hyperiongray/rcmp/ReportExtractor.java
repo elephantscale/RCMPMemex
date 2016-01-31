@@ -175,12 +175,9 @@ public class ReportExtractor {
 
             // Get the extracted text
             extractedText = textAbsorber.getText();
-//        System.out.println("extractedText=\n" + extractedText);
 
         } catch (Exception e) {
-        	e.printStackTrace();
-            //logger.warn("Problem extracting PDF from {}", file.getPath(, e));
-            int x = 0;
+        	logger.error("Problem extracting PDF from " + file.getPath(), e);
         }
         return extractedText;
     }

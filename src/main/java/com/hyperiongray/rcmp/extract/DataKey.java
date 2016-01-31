@@ -6,7 +6,7 @@ public enum DataKey {
 	REPORT_NO("Report no.:"),
     OCCURRENCE_TYPE("Occurrence Type:"),
     OCCURRENCE_TIME("Occurrence time:"),
-    REPORETD_TIME("Reported time:"),
+    REPORTED_TIME("Reported time:"),
     PLACE_OF_OFFENCE("Place of offence:"),
     CLEARANCE_STATUS("Clearance status:"),
     CONCLUDED("Concluded:"),
