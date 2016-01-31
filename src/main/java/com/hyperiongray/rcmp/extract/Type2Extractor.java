@@ -22,9 +22,8 @@ public class Type2Extractor {
 	    	ret.put(DataKey.LAST_NAME, new MarkerBasedExtractor("LAST NAME:").extract(text, Type.LINE));
 	    	ret.put(DataKey.FIRST_NAME, new MarkerBasedExtractor("FIRST NAME:").extract(text, Type.LINE));
 	    	ret.put(DataKey.SEX, new MarkerBasedExtractor("SEX:").extract(text, Type.NEXT_WORD));
-	    	ret.put(DataKey.DRIVERS_LICENCE_NO, new MarkerBasedExtractor("DRIVER'S LICENCE NO.:").extract(text, Type.LINE));
-	    	ret.put(DataKey.DRIVERS_LICENCE_PROV, new MarkerBasedExtractor("DRIVER'S LICENCE PROV:").extract(text, Type.LINE));
-	    	ret.put(DataKey.DRIVERS_LICENCE_PROV, new MarkerBasedExtractor("DRIVER'S LICENCE PROV:").extract(text, Type.LINE));
+	    	ret.put(DataKey.DRIVERS_LICENCE_NO, new MarkerBasedExtractor("LICENCE NO.:").extract(text, Type.NEXT_WORD));
+	    	ret.put(DataKey.DRIVERS_LICENCE_PROV, new MarkerBasedExtractor("LICENCE PROV:").extract(text, Type.LINE));
 	    	ret.put(DataKey.VEHICLE_MAKE, new MarkerBasedExtractor("Make:").extract(text, Type.LINE));
 	    	ret.put(DataKey.VEHICLE_MODEL, new MarkerBasedExtractor("Model:").extract(text, Type.LINE));
 	    	ret.put(DataKey.VEHICLE_YEAR, new MarkerBasedExtractor("Year:").extract(text, Type.NEXT_WORD));
